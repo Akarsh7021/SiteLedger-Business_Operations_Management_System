@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${pageTitle}">Employee</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<header class="top-bar">
+    <div>
+        <p class="eyebrow">Employee Management</p>
+        <h1 th:text="${pageTitle}">Employee</h1>
+    </div>
+    <a th:href="@{/employees}" class="secondary-button">Back</a>
+</header>
+
+<main class="page narrow-page">
+    <form th:object="${employeeForm}"
+          th:action="${employeeForm.id == null} ? @{/employees} : @{/employees/{id}(id=${employeeForm.id})}"
+          method="post"
+          class="form-panel">
+
+        <label>
+            Full Name
+            <input type="text" th:field="*{fullName}" required>
+            <span class="field-error" th:errors="*{fullName}"></span>
+        </label>
+
+        <label>
+            Phone Number
+            <input type="text" th:field="*{phoneNumber}">
+            <span class="field-error" th:errors="*{phoneNumber}"></span>
+        </label>
+
+        <label>
+            Address
+            <textarea th:field="*{address}" rows="3"></textarea>
+            <span class="field-error" th:errors="*{address}"></span>
+        </label>
+
+        <div class="form-grid">
+            <label>
+                Hourly Wage
+                <input type="number" th:field="*{hourlyWage}" min="0.01" step="0.01" required>
+                <span class="field-error" th:errors="*{hourlyWage}"></span>
+            </label>
+
+            <label>
+                Position
+                <input type="text" th:field="*{position}" required>
+                <span class="field-error" th:errors="*{position}"></span>
+            </label>
+        </div>
+
+        <label>
+            Employment Status
+            <select th:field="*{employmentStatus}" required>
+                <option th:each="status : ${statuses}" th:value="${status}" th:text="${status}"></option>
+            </select>
+            <span class="field-error" th:errors="*{employmentStatus}"></span>
+        </label>
+
+        <div class="form-actions">
+            <button type="submit" class="primary-button">Save Employee</button>
+            <a th:href="@{/employees}" class="secondary-button">Cancel</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>

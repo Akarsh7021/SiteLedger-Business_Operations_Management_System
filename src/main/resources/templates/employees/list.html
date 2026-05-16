@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Employees</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<header class="top-bar">
+    <div>
+        <p class="eyebrow">Management</p>
+        <h1>Employees</h1>
+    </div>
+    <form th:action="@{/logout}" method="post">
+        <button type="submit" class="secondary-button">Logout</button>
+    </form>
+</header>
+
+<main class="page">
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+
+    <section class="toolbar">
+        <form th:action="@{/employees}" method="get" class="search-form">
+            <input type="search" name="search" placeholder="Search by name" th:value="${search}">
+            <button type="submit" class="secondary-button">Search</button>
+        </form>
+        <a th:href="@{/employees/new}" class="primary-button">Add Employee</a>
+    </section>
+
+    <section class="table-panel">
+        <table>
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Position</th>
+                <th>Phone</th>
+                <th>Hourly Wage</th>
+                <th>Status</th>
+                <th class="actions-column">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="employee : ${employees}">
+                <td th:text="${employee.fullName}">Employee Name</td>
+                <td th:text="${employee.position}">Position</td>
+                <td th:text="${employee.phoneNumber ?: '-'}">Phone</td>
+                <td th:text="${#numbers.formatCurrency(employee.hourlyWage)}">$0.00</td>
+                <td>
+                    <span class="status-pill" th:text="${employee.employmentStatus}">ACTIVE</span>
+                </td>
+                <td class="table-actions">
+                    <a th:href="@{/employees/{id}/edit(id=${employee.id})}" class="secondary-button">Edit</a>
+                    <form th:action="@{/employees/{id}/delete(id=${employee.id})}" method="post">
+                        <button type="submit" class="danger-button">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(employees)}">
+                <td colspan="6" class="empty-state">No employees found.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>
