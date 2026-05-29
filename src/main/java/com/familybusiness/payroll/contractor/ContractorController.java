@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-@RequestMapping("/contractors")
+@RequestMapping({"/customers", "/contractors"})
 public class ContractorController {
 
     private final ContractorService contractorService;
@@ -27,6 +27,7 @@ public class ContractorController {
         model.addAttribute("contractors", contractorService.findContractors(null));
         model.addAttribute("contractorRows", contractorService.findContractorRows(search));
         model.addAttribute("workSiteForm", new WorkSiteForm());
+        addWorkSiteOptions(model);
         model.addAttribute("search", search);
         return "contractors/list";
     }
@@ -34,13 +35,15 @@ public class ContractorController {
     @GetMapping("/{id}")
     public String contractorDetail(@PathVariable Long id, Model model) {
         model.addAttribute("contractor", contractorService.getContractor(id));
+        addWorkSiteOptions(model);
         return "contractors/detail";
     }
 
     @GetMapping("/new")
     public String newContractor(Model model) {
         model.addAttribute("contractorForm", new ContractorForm());
-        model.addAttribute("pageTitle", "Add Contractor");
+        model.addAttribute("customerTypes", CustomerType.values());
+        model.addAttribute("pageTitle", "Add Customer");
         return "contractors/form";
     }
 
@@ -52,20 +55,22 @@ public class ContractorController {
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute("pageTitle", "Add Contractor");
+            model.addAttribute("customerTypes", CustomerType.values());
+            model.addAttribute("pageTitle", "Add Customer");
             return "contractors/form";
         }
 
         Contractor contractor = contractorService.createContractor(contractorForm);
-        redirectAttributes.addFlashAttribute("message", "Contractor added.");
-        return "redirect:/contractors/" + contractor.getId();
+        redirectAttributes.addFlashAttribute("message", "Customer added.");
+        return "redirect:/customers/" + contractor.getId();
     }
 
     @GetMapping("/{id}/edit")
     public String editContractor(@PathVariable Long id, Model model) {
         Contractor contractor = contractorService.getContractor(id);
         model.addAttribute("contractorForm", ContractorForm.fromContractor(contractor));
-        model.addAttribute("pageTitle", "Edit Contractor");
+        model.addAttribute("customerTypes", CustomerType.values());
+        model.addAttribute("pageTitle", "Edit Customer");
         return "contractors/form";
     }
 
@@ -78,20 +83,21 @@ public class ContractorController {
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute("pageTitle", "Edit Contractor");
+            model.addAttribute("customerTypes", CustomerType.values());
+            model.addAttribute("pageTitle", "Edit Customer");
             return "contractors/form";
         }
 
         contractorService.updateContractor(id, contractorForm);
-        redirectAttributes.addFlashAttribute("message", "Contractor updated.");
-        return "redirect:/contractors/" + id;
+        redirectAttributes.addFlashAttribute("message", "Customer updated.");
+        return "redirect:/customers/" + id;
     }
 
     @PostMapping("/{id}/delete")
     public String deleteContractor(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         contractorService.deleteContractor(id);
-        redirectAttributes.addFlashAttribute("message", "Contractor deleted.");
-        return "redirect:/contractors";
+        redirectAttributes.addFlashAttribute("message", "Customer deleted.");
+        return "redirect:/customers";
     }
 
     @GetMapping("/{contractorId}/work-sites/new")
@@ -102,6 +108,7 @@ public class ContractorController {
         model.addAttribute("contractor", contractor);
         model.addAttribute("workSiteForm", form);
         model.addAttribute("pageTitle", "Add Work Site");
+        addWorkSiteOptions(model);
         return "contractors/work-site-form";
     }
 
@@ -116,12 +123,13 @@ public class ContractorController {
         if (bindingResult.hasErrors()) {
             model.addAttribute("contractor", contractorService.getContractor(contractorId));
             model.addAttribute("pageTitle", "Add Work Site");
+            addWorkSiteOptions(model);
             return "contractors/work-site-form";
         }
 
         contractorService.createWorkSite(contractorId, workSiteForm);
         redirectAttributes.addFlashAttribute("message", "Work site added.");
-        return "redirect:/contractors/" + contractorId;
+        return "redirect:/customers/" + contractorId;
     }
 
     @PostMapping("/work-sites")
@@ -135,12 +143,12 @@ public class ContractorController {
         }
         if (bindingResult.hasErrors()) {
             redirectAttributes.addFlashAttribute("error", "Choose a contractor and enter valid work site details.");
-            return "redirect:/contractors";
+            return "redirect:/customers";
         }
 
         contractorService.createWorkSite(workSiteForm.getContractorId(), workSiteForm);
         redirectAttributes.addFlashAttribute("message", "Work site added.");
-        return "redirect:/contractors";
+        return "redirect:/customers";
     }
 
     @GetMapping("/{contractorId}/work-sites/{workSiteId}/edit")
@@ -150,6 +158,7 @@ public class ContractorController {
         model.addAttribute("contractor", contractor);
         model.addAttribute("workSiteForm", WorkSiteForm.fromWorkSite(workSite));
         model.addAttribute("pageTitle", "Edit Work Site");
+        addWorkSiteOptions(model);
         return "contractors/work-site-form";
     }
 
@@ -165,12 +174,13 @@ public class ContractorController {
         if (bindingResult.hasErrors()) {
             model.addAttribute("contractor", contractorService.getContractor(contractorId));
             model.addAttribute("pageTitle", "Edit Work Site");
+            addWorkSiteOptions(model);
             return "contractors/work-site-form";
         }
 
         contractorService.updateWorkSite(contractorId, workSiteId, workSiteForm);
         redirectAttributes.addFlashAttribute("message", "Work site updated.");
-        return "redirect:/contractors";
+        return "redirect:/customers";
     }
 
     @PostMapping("/{contractorId}/work-sites/{workSiteId}/delete")
@@ -181,6 +191,11 @@ public class ContractorController {
     ) {
         contractorService.deleteWorkSite(contractorId, workSiteId);
         redirectAttributes.addFlashAttribute("message", "Work site deleted.");
-        return "redirect:/contractors";
+        return "redirect:/customers";
+    }
+
+    private void addWorkSiteOptions(Model model) {
+        model.addAttribute("unitsOfMeasurement", UnitOfMeasurement.values());
+        model.addAttribute("workSiteStatuses", WorkSiteStatus.values());
     }
 }

@@ -3,6 +3,8 @@ package com.familybusiness.payroll.contractor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Comparator;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +12,10 @@ import java.util.List;
 @Service
 @Transactional
 public class ContractorService {
+
+    // Change this value later if the square-foot quote rate changes.
+    private static final BigDecimal SQUARE_FOOT_RATE = new BigDecimal("0.50");
+    private static final BigDecimal GST_RATE = new BigDecimal("0.05");
 
     private final ContractorRepository contractorRepository;
     private final WorkSiteRepository workSiteRepository;
@@ -104,6 +110,8 @@ public class ContractorService {
     private void copyFormToContractor(ContractorForm form, Contractor contractor) {
         contractor.setName(form.getName().trim());
         contractor.setPhoneNumber(cleanOptionalText(form.getPhoneNumber()));
+        contractor.setCustomerType(form.getCustomerType());
+        contractor.setBillingName(cleanOptionalText(form.getBillingName()));
         contractor.setAddress(cleanOptionalText(form.getAddress()));
         contractor.setNotes(cleanOptionalText(form.getNotes()));
         contractor.setAmountPaidToDate(form.getAmountPaidToDate());
@@ -112,8 +120,20 @@ public class ContractorService {
 
     private void copyFormToWorkSite(WorkSiteForm form, WorkSite workSite) {
         workSite.setLocation(form.getLocation().trim());
-        workSite.setQuotedAmount(form.getQuotedAmount());
         workSite.setSquareArea(form.getSquareArea());
+        workSite.setUnitOfMeasurement(form.getUnitOfMeasurement());
+        workSite.setQuotedAmount(resolveQuotedAmount(form));
+        workSite.setGstAmount(resolveQuotedAmount(form).multiply(GST_RATE).setScale(2, RoundingMode.HALF_UP));
+        workSite.setStatus(form.getStatus() == null ? WorkSiteStatus.IN_PROGRESS : form.getStatus());
+    }
+
+    private BigDecimal resolveQuotedAmount(WorkSiteForm form) {
+        BigDecimal squareArea = form.getSquareArea() == null ? BigDecimal.ZERO : form.getSquareArea();
+        if (form.getUnitOfMeasurement() == UnitOfMeasurement.SFT) {
+            return squareArea.multiply(SQUARE_FOOT_RATE).setScale(2, RoundingMode.HALF_UP);
+        }
+        BigDecimal quotedAmount = form.getQuotedAmount() == null ? BigDecimal.ZERO : form.getQuotedAmount();
+        return quotedAmount.setScale(2, RoundingMode.HALF_UP);
     }
 
     private String cleanOptionalText(String value) {

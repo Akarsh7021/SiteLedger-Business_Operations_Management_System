@@ -3,6 +3,8 @@ package com.familybusiness.payroll.contractor;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -26,6 +28,13 @@ public class Contractor {
 
     @Column(length = 30)
     private String phoneNumber;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private CustomerType customerType = CustomerType.OWNER;
+
+    @Column(length = 120)
+    private String billingName;
 
     @Column(length = 255)
     private String address;
@@ -64,6 +73,25 @@ public class Contractor {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public CustomerType getCustomerType() {
+        if (customerType == null) {
+            return CustomerType.OWNER;
+        }
+        return customerType;
+    }
+
+    public void setCustomerType(CustomerType customerType) {
+        this.customerType = customerType;
+    }
+
+    public String getBillingName() {
+        return billingName;
+    }
+
+    public void setBillingName(String billingName) {
+        this.billingName = billingName;
     }
 
     public String getAddress() {

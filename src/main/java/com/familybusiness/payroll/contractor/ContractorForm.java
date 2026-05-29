@@ -19,6 +19,12 @@ public class ContractorForm {
     @Size(max = 30, message = "Phone number must be 30 characters or less")
     private String phoneNumber;
 
+    @NotNull(message = "Customer type is required")
+    private CustomerType customerType = CustomerType.OWNER;
+
+    @Size(max = 120, message = "Billing name must be 120 characters or less")
+    private String billingName;
+
     @Size(max = 255, message = "Address must be 255 characters or less")
     private String address;
 
@@ -40,6 +46,8 @@ public class ContractorForm {
         form.setId(contractor.getId());
         form.setName(contractor.getName());
         form.setPhoneNumber(contractor.getPhoneNumber());
+        form.setCustomerType(contractor.getCustomerType());
+        form.setBillingName(contractor.getBillingName());
         form.setAddress(contractor.getAddress());
         form.setNotes(contractor.getNotes());
         form.setAmountPaidToDate(contractor.getAmountPaidToDate());
@@ -69,6 +77,22 @@ public class ContractorForm {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public CustomerType getCustomerType() {
+        return customerType;
+    }
+
+    public void setCustomerType(CustomerType customerType) {
+        this.customerType = customerType;
+    }
+
+    public String getBillingName() {
+        return billingName;
+    }
+
+    public void setBillingName(String billingName) {
+        this.billingName = billingName;
     }
 
     public String getAddress() {
