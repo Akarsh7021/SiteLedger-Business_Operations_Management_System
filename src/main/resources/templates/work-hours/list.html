@@ -17,7 +17,8 @@
     </div>
     <nav class="top-nav" aria-label="Primary">
         <a th:href="@{/employees}" class="secondary-button">Employees</a>
-        <a th:href="@{/contractors}" class="secondary-button">Contractors</a>
+        <a th:href="@{/customers}" class="secondary-button">Customers</a>
+        <a th:href="@{/site-hours}" class="secondary-button">Site Hours</a>
         <form th:action="@{/logout}" method="post">
             <button type="submit" class="secondary-button">Logout</button>
         </form>
@@ -40,7 +41,7 @@
                 </option>
             </select>
             <select name="paymentStatus">
-                <option value="">Paid and unpaid</option>
+                <option value="">All payment statuses</option>
                 <option th:each="status : ${paymentStatuses}"
                         th:value="${status}"
                         th:selected="${selectedPaymentStatus != null && selectedPaymentStatus == status}"
@@ -54,16 +55,15 @@
     </section>
 
     <section class="table-panel">
-        <table>
+        <table class="work-hours-table">
             <thead>
             <tr>
                 <th>Date</th>
                 <th>Employee</th>
-                <th>Regular</th>
-                <th>Overtime</th>
-                <th>Total</th>
-                <th>Payment</th>
-                <th>Notes</th>
+                <th>Hours</th>
+                <th>Site Location</th>
+                <th>Payment Status</th>
+                <th>Total Payment Due</th>
                 <th class="actions-column">Actions</th>
             </tr>
             </thead>
@@ -71,9 +71,8 @@
             <tr th:each="workHour : ${workHours}">
                 <td th:text="${#temporals.format(workHour.workDate, 'MMM d, yyyy')}">Jan 1, 2026</td>
                 <td th:text="${workHour.employee.fullName}">Employee Name</td>
-                <td th:text="${workHour.regularHours}">0.00</td>
-                <td th:text="${workHour.overtimeHours}">0.00</td>
-                <td th:text="${workHour.regularHours.add(workHour.overtimeHours)}">0.00</td>
+                <td th:text="${workHour.totalHours}">0.00</td>
+                <td th:text="${workHour.workSite != null ? workHour.workSite.location : '-'}">Site</td>
                 <td>
                     <span th:classappend="${workHour.paymentStatus.name() == 'PAID'} ? ' payment-paid' : (${workHour.paymentStatus.name() == 'PARTIAL'} ? ' payment-partial' : ' payment-unpaid')"
                           class="payment-pill"
@@ -82,16 +81,18 @@
                     </span>
                     <span th:if="${workHour.paymentMethod != null}"
                           class="payment-detail"
-                          th:text="${workHour.cashPaymentType != null ? workHour.paymentMethod + ' - ' + workHour.cashPaymentType : workHour.paymentMethod}">
+                          th:text="${workHour.paymentMethod.name() == 'E_PAYMENT' ? 'E-Transfer' : (workHour.cashPaymentType != null ? workHour.paymentMethod + ' - ' + workHour.cashPaymentType : workHour.paymentMethod)}">
                         CASH
                     </span>
+                </td>
+                <td>
+                    <strong th:text="${#numbers.formatCurrency(workHour.totalPaymentAmount)}">$0.00</strong>
                     <span th:if="${workHour.paymentStatus.name() == 'PARTIAL'}"
                           class="payment-detail"
-                          th:text="'Paid $' + ${workHour.partialPaymentAmount} + ' / Remaining $' + ${workHour.remainingPaymentAmount}">
-                        Paid $0.00 / Remaining $0.00
+                          th:text="'Left ' + ${#numbers.formatCurrency(workHour.remainingPaymentAmount)}">
+                        Left $0.00
                     </span>
                 </td>
-                <td th:text="${workHour.notes ?: '-'}">Notes</td>
                 <td>
                     <div class="table-actions">
                         <button th:if="${workHour.paymentStatus.name() != 'PAID'}"
@@ -127,17 +128,27 @@
 
                             <div class="payment-summary">
                                 <span th:text="${#temporals.format(workHour.workDate, 'MMM d, yyyy')}">Jan 1, 2026</span>
-                                <span th:text="'Total $' + ${workHour.totalPaymentAmount}">Total $0.00</span>
-                                <span th:if="${workHour.paymentStatus.name() == 'PARTIAL'}"
-                                      th:text="'Remaining $' + ${workHour.remainingPaymentAmount}">Remaining $0.00</span>
+                                <span th:text="'Total ' + ${#numbers.formatCurrency(workHour.totalPaymentAmount)}">Total $0.00</span>
                             </div>
 
                             <div class="modal-actions">
-                                <form th:action="@{/work-hours/{id}/pay(id=${workHour.id})}" method="post">
-                                    <input type="hidden" name="paymentMethod" value="E_PAYMENT">
-                                    <button type="submit" class="primary-button">E-Payment</button>
-                                </form>
+                                <button type="button"
+                                        class="primary-button etransfer-button"
+                                        th:attr="data-confirm-target='etransfer-confirm-' + ${workHour.id},data-bank-url=${rbcOnlineBankingUrl}">
+                                    E-Transfer
+                                </button>
                                 <button type="button" class="primary-button cash-toggle">Cash Payment</button>
+                            </div>
+
+                            <div th:id="'etransfer-confirm-' + ${workHour.id}" class="payment-confirm" hidden>
+                                <p>Was the e-transfer payment successful?</p>
+                                <div class="modal-actions">
+                                    <form th:action="@{/work-hours/{id}/pay(id=${workHour.id})}" method="post">
+                                        <input type="hidden" name="paymentMethod" value="E_PAYMENT">
+                                        <button type="submit" class="primary-button">Yes, Paid</button>
+                                    </form>
+                                    <button type="button" class="secondary-button payment-not-paid">No</button>
+                                </div>
                             </div>
 
                             <div class="cash-options" hidden>
@@ -172,7 +183,7 @@
                 </td>
             </tr>
             <tr th:if="${#lists.isEmpty(workHours)}">
-                <td colspan="8" class="empty-state">No work hours recorded.</td>
+                <td colspan="7" class="empty-state">No work hours recorded.</td>
             </tr>
             </tbody>
         </table>
@@ -196,6 +207,25 @@
             if (event.target === backdrop) {
                 backdrop.hidden = true;
             }
+        });
+    });
+
+    document.querySelectorAll(".etransfer-button").forEach((button) => {
+        button.addEventListener("click", () => {
+            window.open(button.dataset.bankUrl, "_blank", "noopener");
+            const confirmPanel = document.getElementById(button.dataset.confirmTarget);
+            confirmPanel.hidden = false;
+            const showConfirmation = () => {
+                confirmPanel.hidden = false;
+                window.removeEventListener("focus", showConfirmation);
+            };
+            window.addEventListener("focus", showConfirmation);
+        });
+    });
+
+    document.querySelectorAll(".payment-not-paid").forEach((button) => {
+        button.addEventListener("click", () => {
+            button.closest(".payment-confirm").hidden = true;
         });
     });
 

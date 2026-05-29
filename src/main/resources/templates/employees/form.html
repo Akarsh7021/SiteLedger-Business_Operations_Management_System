@@ -15,7 +15,10 @@
             <h1 th:text="${pageTitle}">Employee</h1>
         </div>
     </div>
-    <a th:href="@{/employees}" class="secondary-button">Back</a>
+    <nav class="top-nav" aria-label="Primary">
+        <a th:href="@{/employees}" class="secondary-button">Back</a>
+        <a th:href="@{/customers}" class="secondary-button">Customers</a>
+    </nav>
 </header>
 
 <main class="page narrow-page">

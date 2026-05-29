@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="${pageTitle}">Contractor</title>
+    <title th:text="${pageTitle}">Customer</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
@@ -11,29 +11,45 @@
     <div class="brand-heading">
         <img th:src="@{/images/nh-hygiene-logo.png}" alt="NH Hygiene Services Ltd." class="brand-logo">
         <div>
-            <p class="eyebrow">Contract Management</p>
-            <h1 th:text="${pageTitle}">Contractor</h1>
+            <p class="eyebrow">Customer Management</p>
+            <h1 th:text="${pageTitle}">Customer</h1>
         </div>
     </div>
-    <a th:href="@{/contractors}" class="secondary-button">Back</a>
+    <a th:href="@{/customers}" class="secondary-button">Back</a>
 </header>
 
 <main class="page narrow-page">
     <form th:object="${contractorForm}"
-          th:action="${contractorForm.id == null} ? @{/contractors} : @{/contractors/{id}(id=${contractorForm.id})}"
+          th:action="${contractorForm.id == null} ? @{/customers} : @{/customers/{id}(id=${contractorForm.id})}"
           method="post"
           class="form-panel">
 
         <label>
-            Full Name
+            Name
             <input type="text" th:field="*{name}" required>
             <span class="field-error" th:errors="*{name}"></span>
         </label>
 
+        <div class="form-grid">
+            <label>
+                Number
+                <input type="text" th:field="*{phoneNumber}">
+                <span class="field-error" th:errors="*{phoneNumber}"></span>
+            </label>
+
+            <label>
+                Builder or Owner
+                <select th:field="*{customerType}" required>
+                    <option th:each="type : ${customerTypes}" th:value="${type}" th:text="${type}"></option>
+                </select>
+                <span class="field-error" th:errors="*{customerType}"></span>
+            </label>
+        </div>
+
         <label>
-            Phone Number
-            <input type="text" th:field="*{phoneNumber}">
-            <span class="field-error" th:errors="*{phoneNumber}"></span>
+            Billing Name
+            <input type="text" th:field="*{billingName}">
+            <span class="field-error" th:errors="*{billingName}"></span>
         </label>
 
         <label>
@@ -56,15 +72,15 @@
             </label>
 
             <label>
-                Amount Unpaid
+                Amount Owed
                 <input type="number" th:field="*{amountUnpaid}" min="0" step="0.01" required>
                 <span class="field-error" th:errors="*{amountUnpaid}"></span>
             </label>
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="primary-button">Save Contractor</button>
-            <a th:href="@{/contractors}" class="secondary-button">Cancel</a>
+            <button type="submit" class="primary-button">Save Customer</button>
+            <a th:href="@{/customers}" class="secondary-button">Cancel</a>
         </div>
     </form>
 </main>

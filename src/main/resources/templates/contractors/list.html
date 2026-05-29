@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Contractors</title>
+    <title>Customers</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
@@ -11,13 +11,14 @@
     <div class="brand-heading">
         <img th:src="@{/images/nh-hygiene-logo.png}" alt="NH Hygiene Services Ltd." class="brand-logo">
         <div>
-            <p class="eyebrow">Contract Management</p>
-            <h1>Contractors</h1>
+            <p class="eyebrow">Customer Management</p>
+            <h1>Customers</h1>
         </div>
     </div>
     <nav class="top-nav" aria-label="Primary">
         <a th:href="@{/employees}" class="secondary-button">Employees</a>
         <a th:href="@{/work-hours}" class="secondary-button">Work Hours</a>
+        <a th:href="@{/site-hours}" class="secondary-button">Site Hours</a>
         <form th:action="@{/logout}" method="post">
             <button type="submit" class="secondary-button">Logout</button>
         </form>
@@ -29,13 +30,13 @@
     <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
 
     <section class="toolbar">
-        <form th:action="@{/contractors}" method="get" class="search-form">
-            <input type="search" name="search" placeholder="Search contractor" th:value="${search}">
+        <form th:action="@{/customers}" method="get" class="search-form">
+            <input type="search" name="search" placeholder="Search customer" th:value="${search}">
             <button type="submit" class="secondary-button">Search</button>
         </form>
         <div class="toolbar-actions">
             <button type="button" class="primary-button" data-modal-target="work-site-modal">Add Work Site</button>
-            <a th:href="@{/contractors/new}" class="primary-button">Add Contractor</a>
+            <a th:href="@{/customers/new}" class="primary-button">Add Customer</a>
         </div>
     </section>
 
@@ -44,127 +45,111 @@
             <thead>
             <tr>
                 <th>Name</th>
-                <th>Phone Number</th>
+                <th>Builder / Owner</th>
                 <th>Work Site Location</th>
-                <th>Area</th>
                 <th>Quoted</th>
-                <th class="actions-column">Action</th>
+                <th>Status</th>
+                <th>Billing Name</th>
+                <th class="actions-column">Actions</th>
             </tr>
             </thead>
             <tbody>
             <tr th:each="row : ${contractorRows}">
                 <td>
-                    <a th:href="@{/contractors/{id}(id=${row.contractor.id})}"
+                    <a th:href="@{/customers/{id}(id=${row.contractor.id})}"
                        class="contractor-link"
                        th:text="${row.contractor.name}">
-                        Contractor Name
+                        Customer Name
                     </a>
                 </td>
-                <td th:text="${row.contractor.phoneNumber ?: '-'}">Phone</td>
+                <td th:text="${row.contractor.customerType}">OWNER</td>
                 <td th:text="${row.hasWorkSite() ? row.workSite.location : '-'}">Location</td>
-                <td th:text="${row.hasWorkSite() ? row.workSite.squareArea + ' sq ft' : '-'}">0 sq ft</td>
                 <td th:text="${row.hasWorkSite() ? #numbers.formatCurrency(row.workSite.quotedAmount) : '-'}">$0.00</td>
                 <td>
+                    <span th:if="${row.hasWorkSite()}"
+                          th:classappend="${row.workSite.status.name() == 'COMPLETE'} ? ' status-complete' : ''"
+                          class="status-pill"
+                          th:text="${row.workSite.status.name() == 'COMPLETE' ? 'Complete' : 'In Progress'}">
+                        In Progress
+                    </span>
+                    <span th:if="${!row.hasWorkSite()}">-</span>
+                </td>
+                <td th:text="${row.contractor.billingName ?: '-'}">Billing</td>
+                <td>
                     <div class="table-actions">
+                        <a th:href="@{/customers/{id}(id=${row.contractor.id})}" class="secondary-button">View</a>
                         <a th:if="${row.hasWorkSite()}"
-                           th:href="@{/contractors/{contractorId}/work-sites/{workSiteId}/edit(contractorId=${row.contractor.id},workSiteId=${row.workSite.id})}"
+                           th:href="@{/customers/{contractorId}/work-sites/{workSiteId}/edit(contractorId=${row.contractor.id},workSiteId=${row.workSite.id})}"
                            class="secondary-button">
                             Edit Site
                         </a>
                         <form th:if="${row.hasWorkSite()}"
-                              th:action="@{/contractors/{contractorId}/work-sites/{workSiteId}/delete(contractorId=${row.contractor.id},workSiteId=${row.workSite.id})}"
+                              th:action="@{/customers/{contractorId}/work-sites/{workSiteId}/delete(contractorId=${row.contractor.id},workSiteId=${row.workSite.id})}"
                               method="post">
                             <button type="submit" class="danger-button">Delete Site</button>
                         </form>
-                        <button th:if="${!row.hasWorkSite()}"
-                                type="button"
-                                class="secondary-button row-site-button"
-                                th:attr="data-contractor-id=${row.contractor.id}">
-                            Add Site
-                        </button>
-                        <a th:href="@{/contractors/{id}/edit(id=${row.contractor.id})}" class="secondary-button">Edit Contractor</a>
                     </div>
                 </td>
             </tr>
             <tr th:if="${#lists.isEmpty(contractorRows)}">
-                <td colspan="6" class="empty-state">No contractors found.</td>
+                <td colspan="7" class="empty-state">No customers found.</td>
             </tr>
             </tbody>
         </table>
     </section>
 
     <div id="work-site-modal" class="modal-backdrop" hidden>
-        <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="work-site-title">
+        <section class="modal-panel wide-modal" role="dialog" aria-modal="true" aria-labelledby="work-site-title">
             <div class="modal-header">
                 <div>
-                    <p class="eyebrow">Contractor Work Site</p>
+                    <p class="eyebrow">Customer Work Site</p>
                     <h2 id="work-site-title">Add Work Site</h2>
                 </div>
                 <button type="button" class="secondary-button modal-close">Close</button>
             </div>
 
-            <form th:action="@{/contractors/work-sites}" method="post" class="form-stack">
+            <form th:action="@{/customers/work-sites}" method="post" class="form-stack quote-form">
                 <label>
-                    Contractor
-                    <select name="contractorId" id="modal-contractor-id" required>
-                        <option value="">Select contractor</option>
-                        <option th:each="contractor : ${contractors}"
-                                th:value="${contractor.id}"
-                                th:text="${contractor.name}">
-                            Contractor
-                        </option>
+                    Customer
+                    <select name="contractorId" required>
+                        <option value="">Select customer</option>
+                        <option th:each="contractor : ${contractors}" th:value="${contractor.id}" th:text="${contractor.name}"></option>
                     </select>
                 </label>
 
                 <label>
                     Work Site Location
-                    <input type="text" name="location" placeholder="House, building, or site address" required>
+                    <input type="text" name="location" class="location-search" placeholder="Start typing an address or site name" autocomplete="off" required>
+                    <div class="location-results"></div>
                 </label>
 
-                <div class="form-grid">
+                <div class="form-grid quote-grid">
                     <label>
-                        Quoted Amount
-                        <input type="number" name="quotedAmount" min="0" step="0.01" required>
+                        Square Feet (SFT)
+                        <input type="number" name="squareArea" class="quote-sft" min="0" step="0.01" required>
                     </label>
-
                     <label>
-                        Square Area
-                        <input type="number" name="squareArea" min="0" step="0.01" required>
+                        Unit Of Measurement
+                        <select name="unitOfMeasurement" class="quote-uom" required>
+                            <option th:each="unit : ${unitsOfMeasurement}" th:value="${unit}" th:text="${unit}"></option>
+                        </select>
+                    </label>
+                    <label>
+                        Cost
+                        <input type="number" name="quotedAmount" class="quote-cost" min="0" step="0.01" required>
                     </label>
                 </div>
+
+                <label>
+                    GST 5%
+                    <input type="number" class="quote-gst" readonly>
+                </label>
 
                 <button type="submit" class="primary-button">Save Work Site</button>
             </form>
         </section>
     </div>
 </main>
-<script>
-    document.querySelectorAll("[data-modal-target]").forEach((button) => {
-        button.addEventListener("click", () => {
-            document.getElementById(button.dataset.modalTarget).hidden = false;
-        });
-    });
-
-    document.querySelectorAll(".row-site-button").forEach((button) => {
-        button.addEventListener("click", () => {
-            document.getElementById("modal-contractor-id").value = button.dataset.contractorId;
-            document.getElementById("work-site-modal").hidden = false;
-        });
-    });
-
-    document.querySelectorAll(".modal-close").forEach((button) => {
-        button.addEventListener("click", () => {
-            button.closest(".modal-backdrop").hidden = true;
-        });
-    });
-
-    document.querySelectorAll(".modal-backdrop").forEach((backdrop) => {
-        backdrop.addEventListener("click", (event) => {
-            if (event.target === backdrop) {
-                backdrop.hidden = true;
-            }
-        });
-    });
-</script>
+<script src="/js/app.js"></script>
 </body>
 </html>

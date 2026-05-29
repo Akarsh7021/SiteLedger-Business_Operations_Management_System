@@ -34,6 +34,21 @@
         </label>
 
         <label>
+            Site Location
+            <select th:field="*{workSiteId}" required>
+                <option value="">Select site location</option>
+                <optgroup th:each="customer : ${customers}" th:label="${customer.name}">
+                    <option th:each="site : ${customer.workSites}"
+                            th:value="${site.id}"
+                            th:text="${site.location}">
+                        Site
+                    </option>
+                </optgroup>
+            </select>
+            <span class="field-error" th:errors="*{workSiteId}"></span>
+        </label>
+
+        <label>
             Work Date
             <input type="date" th:field="*{workDate}" required>
             <span class="field-error" th:errors="*{workDate}"></span>
