@@ -11,46 +11,68 @@
     <div class="brand-heading">
         <img th:src="@{/images/nh-hygiene-logo.png}" alt="NH Hygiene Services Ltd." class="brand-logo">
         <div>
-            <p class="eyebrow" th:text="${contractor.name}">Contractor</p>
+            <p class="eyebrow" th:text="${contractor.name}">Customer</p>
             <h1 th:text="${pageTitle}">Work Site</h1>
         </div>
     </div>
-    <a th:href="@{/contractors}" class="secondary-button">Back</a>
+    <a th:href="@{/customers}" class="secondary-button">Back</a>
 </header>
 
 <main class="page narrow-page">
     <form th:object="${workSiteForm}"
           th:action="${workSiteForm.id == null}
-              ? @{/contractors/{contractorId}/work-sites(contractorId=${contractor.id})}
-              : @{/contractors/{contractorId}/work-sites/{workSiteId}(contractorId=${contractor.id},workSiteId=${workSiteForm.id})}"
+              ? @{/customers/{contractorId}/work-sites(contractorId=${contractor.id})}
+              : @{/customers/{contractorId}/work-sites/{workSiteId}(contractorId=${contractor.id},workSiteId=${workSiteForm.id})}"
           method="post"
-          class="form-panel">
+          class="form-panel quote-form">
 
         <label>
             Work Site Location
-            <input type="text" th:field="*{location}" placeholder="House, building, or site address" required>
+            <input type="text" th:field="*{location}" class="location-search" placeholder="Start typing an address or site name" autocomplete="off" required>
+            <div class="location-results"></div>
             <span class="field-error" th:errors="*{location}"></span>
         </label>
 
-        <div class="form-grid">
+        <div class="form-grid quote-grid">
             <label>
-                Quoted Amount
-                <input type="number" th:field="*{quotedAmount}" min="0" step="0.01" required>
-                <span class="field-error" th:errors="*{quotedAmount}"></span>
+                Square Feet (SFT)
+                <input type="number" th:field="*{squareArea}" class="quote-sft" min="0" step="0.01" required>
+                <span class="field-error" th:errors="*{squareArea}"></span>
             </label>
 
             <label>
-                Square Area
-                <input type="number" th:field="*{squareArea}" min="0" step="0.01" required>
-                <span class="field-error" th:errors="*{squareArea}"></span>
+                Unit Of Measurement
+                <select th:field="*{unitOfMeasurement}" class="quote-uom" required>
+                    <option th:each="unit : ${unitsOfMeasurement}" th:value="${unit}" th:text="${unit}"></option>
+                </select>
+                <span class="field-error" th:errors="*{unitOfMeasurement}"></span>
+            </label>
+
+            <label>
+                Cost
+                <input type="number" th:field="*{quotedAmount}" class="quote-cost" min="0" step="0.01" required>
+                <span class="field-error" th:errors="*{quotedAmount}"></span>
             </label>
         </div>
+
+        <label>
+            Status
+            <select th:field="*{status}" required>
+                <option th:each="status : ${workSiteStatuses}" th:value="${status}" th:text="${status}"></option>
+            </select>
+        </label>
+
+        <label>
+            GST 5%
+            <input type="number" class="quote-gst" th:value="${workSiteForm.gstAmount}" readonly>
+        </label>
 
         <div class="form-actions">
             <button type="submit" class="primary-button">Save Work Site</button>
-            <a th:href="@{/contractors}" class="secondary-button">Cancel</a>
+            <a th:href="@{/customers}" class="secondary-button">Cancel</a>
         </div>
     </form>
 </main>
+<script src="/js/app.js"></script>
 </body>
 </html>

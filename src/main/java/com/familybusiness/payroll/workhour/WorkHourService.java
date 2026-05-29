@@ -3,6 +3,9 @@ package com.familybusiness.payroll.workhour;
 import com.familybusiness.payroll.employee.Employee;
 import com.familybusiness.payroll.employee.EmployeeNotFoundException;
 import com.familybusiness.payroll.employee.EmployeeRepository;
+import com.familybusiness.payroll.contractor.WorkSite;
+import com.familybusiness.payroll.contractor.WorkSiteNotFoundException;
+import com.familybusiness.payroll.contractor.WorkSiteRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,10 +19,16 @@ public class WorkHourService {
 
     private final WorkHourRepository workHourRepository;
     private final EmployeeRepository employeeRepository;
+    private final WorkSiteRepository workSiteRepository;
 
-    public WorkHourService(WorkHourRepository workHourRepository, EmployeeRepository employeeRepository) {
+    public WorkHourService(
+            WorkHourRepository workHourRepository,
+            EmployeeRepository employeeRepository,
+            WorkSiteRepository workSiteRepository
+    ) {
         this.workHourRepository = workHourRepository;
         this.employeeRepository = employeeRepository;
+        this.workSiteRepository = workSiteRepository;
     }
 
     @Transactional(readOnly = true)
@@ -111,8 +120,11 @@ public class WorkHourService {
     private void copyFormToWorkHour(WorkHourForm form, WorkHour workHour) {
         Employee employee = employeeRepository.findById(form.getEmployeeId())
                 .orElseThrow(() -> new EmployeeNotFoundException(form.getEmployeeId()));
+        WorkSite workSite = workSiteRepository.findById(form.getWorkSiteId())
+                .orElseThrow(() -> new WorkSiteNotFoundException(form.getWorkSiteId()));
 
         workHour.setEmployee(employee);
+        workHour.setWorkSite(workSite);
         workHour.setWorkDate(form.getWorkDate());
         workHour.setRegularHours(form.getRegularHours());
         workHour.setOvertimeHours(form.getOvertimeHours());

@@ -28,6 +28,13 @@ public class WorkSiteForm {
     @Digits(integer = 8, fraction = 2, message = "Square area must use up to 2 decimals")
     private BigDecimal squareArea = BigDecimal.ZERO;
 
+    @NotNull(message = "Unit of measurement is required")
+    private UnitOfMeasurement unitOfMeasurement = UnitOfMeasurement.SFT;
+
+    private BigDecimal gstAmount = BigDecimal.ZERO;
+
+    private WorkSiteStatus status = WorkSiteStatus.IN_PROGRESS;
+
     public static WorkSiteForm fromWorkSite(WorkSite workSite) {
         WorkSiteForm form = new WorkSiteForm();
         form.setId(workSite.getId());
@@ -35,6 +42,9 @@ public class WorkSiteForm {
         form.setLocation(workSite.getLocation());
         form.setQuotedAmount(workSite.getQuotedAmount());
         form.setSquareArea(workSite.getSquareArea());
+        form.setUnitOfMeasurement(workSite.getUnitOfMeasurement());
+        form.setGstAmount(workSite.getGstAmount());
+        form.setStatus(workSite.getStatus());
         return form;
     }
 
@@ -76,5 +86,29 @@ public class WorkSiteForm {
 
     public void setSquareArea(BigDecimal squareArea) {
         this.squareArea = squareArea;
+    }
+
+    public UnitOfMeasurement getUnitOfMeasurement() {
+        return unitOfMeasurement;
+    }
+
+    public void setUnitOfMeasurement(UnitOfMeasurement unitOfMeasurement) {
+        this.unitOfMeasurement = unitOfMeasurement;
+    }
+
+    public BigDecimal getGstAmount() {
+        return gstAmount;
+    }
+
+    public void setGstAmount(BigDecimal gstAmount) {
+        this.gstAmount = gstAmount;
+    }
+
+    public WorkSiteStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(WorkSiteStatus status) {
+        this.status = status;
     }
 }

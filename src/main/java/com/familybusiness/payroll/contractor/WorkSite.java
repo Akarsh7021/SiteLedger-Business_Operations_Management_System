@@ -2,6 +2,8 @@ package com.familybusiness.payroll.contractor;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -32,6 +34,17 @@ public class WorkSite {
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal squareArea = BigDecimal.ZERO;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private UnitOfMeasurement unitOfMeasurement = UnitOfMeasurement.SFT;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal gstAmount = BigDecimal.ZERO;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private WorkSiteStatus status = WorkSiteStatus.IN_PROGRESS;
 
     public Long getId() {
         return id;
@@ -71,5 +84,38 @@ public class WorkSite {
 
     public void setSquareArea(BigDecimal squareArea) {
         this.squareArea = squareArea;
+    }
+
+    public UnitOfMeasurement getUnitOfMeasurement() {
+        if (unitOfMeasurement == null) {
+            return UnitOfMeasurement.SFT;
+        }
+        return unitOfMeasurement;
+    }
+
+    public void setUnitOfMeasurement(UnitOfMeasurement unitOfMeasurement) {
+        this.unitOfMeasurement = unitOfMeasurement;
+    }
+
+    public BigDecimal getGstAmount() {
+        if (gstAmount == null) {
+            return BigDecimal.ZERO;
+        }
+        return gstAmount;
+    }
+
+    public void setGstAmount(BigDecimal gstAmount) {
+        this.gstAmount = gstAmount;
+    }
+
+    public WorkSiteStatus getStatus() {
+        if (status == null) {
+            return WorkSiteStatus.IN_PROGRESS;
+        }
+        return status;
+    }
+
+    public void setStatus(WorkSiteStatus status) {
+        this.status = status;
     }
 }

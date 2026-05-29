@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Site Hours</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<header class="top-bar">
+    <div class="brand-heading">
+        <img th:src="@{/images/nh-hygiene-logo.png}" alt="NH Hygiene Services Ltd." class="brand-logo">
+        <div>
+            <p class="eyebrow">Worksite Reporting</p>
+            <h1>Site Hours</h1>
+        </div>
+    </div>
+    <nav class="top-nav" aria-label="Primary">
+        <a th:href="@{/employees}" class="secondary-button">Employees</a>
+        <a th:href="@{/work-hours}" class="secondary-button">Work Hours</a>
+        <a th:href="@{/customers}" class="secondary-button">Customers</a>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="secondary-button">Logout</button>
+        </form>
+    </nav>
+</header>
+
+<main class="page">
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+
+    <section class="table-panel">
+        <table class="site-hours-table">
+            <thead>
+            <tr>
+                <th>Site Location</th>
+                <th>Quoted</th>
+                <th>Accumulated Hours</th>
+                <th>Total Spent</th>
+                <th>Status</th>
+                <th class="actions-column">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="summary : ${siteHours}">
+                <td th:text="${summary.workSite.location}">Site</td>
+                <td th:text="${#numbers.formatCurrency(summary.workSite.quotedAmount)}">$0.00</td>
+                <td>
+                    <button type="button"
+                            class="link-button"
+                            th:attr="data-modal-target='hours-modal-' + ${summary.workSite.id}"
+                            th:text="${summary.accumulatedHours}">
+                        0
+                    </button>
+                    <div th:id="'hours-modal-' + ${summary.workSite.id}" class="modal-backdrop" hidden>
+                        <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="hours-title">
+                            <div class="modal-header">
+                                <div>
+                                    <p class="eyebrow">Employee Hours</p>
+                                    <h2 id="hours-title" th:text="${summary.workSite.location}">Site</h2>
+                                </div>
+                                <button type="button" class="secondary-button modal-close">Close</button>
+                            </div>
+                            <div class="employee-hour-grid" th:if="${!#lists.isEmpty(summary.employeeHours)}">
+                                <div class="employee-hour-box" th:each="employeeHour : ${summary.employeeHours}">
+                                    <strong th:text="${employeeHour.employeeName}">Employee</strong>
+                                    <span th:text="${employeeHour.hours} + ' hours'">0 hours</span>
+                                </div>
+                            </div>
+                            <p th:if="${#lists.isEmpty(summary.employeeHours)}" class="empty-state">No employee hours recorded for this site.</p>
+                        </section>
+                    </div>
+                </td>
+                <td th:text="${#numbers.formatCurrency(summary.totalSpent)}">$0.00</td>
+                <td>
+                    <span th:classappend="${summary.workSite.status.name() == 'COMPLETE'} ? ' status-complete' : ''"
+                          class="status-pill"
+                          th:text="${summary.workSite.status.name() == 'COMPLETE' ? 'Complete' : 'In Progress'}">
+                        In Progress
+                    </span>
+                </td>
+                <td>
+                    <div class="table-actions">
+                        <form th:action="@{/site-hours/{workSiteId}/status(workSiteId=${summary.workSite.id})}" method="post">
+                            <input type="hidden"
+                                   name="status"
+                                   th:value="${summary.workSite.status.name() == 'COMPLETE' ? 'IN_PROGRESS' : 'COMPLETE'}">
+                            <button type="submit"
+                                    class="secondary-button"
+                                    th:text="${summary.workSite.status.name() == 'COMPLETE' ? 'Mark In Progress' : 'Mark Complete'}">
+                                Mark Complete
+                            </button>
+                        </form>
+                        <a th:href="@{/customers/{contractorId}/work-sites/{workSiteId}/edit(contractorId=${summary.workSite.contractor.id},workSiteId=${summary.workSite.id})}"
+                           class="secondary-button">
+                            Edit Site
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(siteHours)}">
+                <td colspan="6" class="empty-state">No work sites found.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+<script src="/js/app.js"></script>
+</body>
+</html>

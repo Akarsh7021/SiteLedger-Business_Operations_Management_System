@@ -16,6 +16,9 @@ public class WorkHourForm {
     @NotNull(message = "Employee is required")
     private Long employeeId;
 
+    @NotNull(message = "Site location is required")
+    private Long workSiteId;
+
     @NotNull(message = "Work date is required")
     private LocalDate workDate = LocalDate.now();
 
@@ -38,6 +41,9 @@ public class WorkHourForm {
         WorkHourForm form = new WorkHourForm();
         form.setId(workHour.getId());
         form.setEmployeeId(workHour.getEmployee().getId());
+        if (workHour.getWorkSite() != null) {
+            form.setWorkSiteId(workHour.getWorkSite().getId());
+        }
         form.setWorkDate(workHour.getWorkDate());
         form.setRegularHours(workHour.getRegularHours());
         form.setOvertimeHours(workHour.getOvertimeHours());
@@ -59,6 +65,14 @@ public class WorkHourForm {
 
     public void setEmployeeId(Long employeeId) {
         this.employeeId = employeeId;
+    }
+
+    public Long getWorkSiteId() {
+        return workSiteId;
+    }
+
+    public void setWorkSiteId(Long workSiteId) {
+        this.workSiteId = workSiteId;
     }
 
     public LocalDate getWorkDate() {

@@ -1,6 +1,7 @@
 package com.familybusiness.payroll.workhour;
 
 import com.familybusiness.payroll.employee.Employee;
+import com.familybusiness.payroll.contractor.WorkSite;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -30,6 +31,10 @@ public class WorkHour {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "employee_id", nullable = false)
     private Employee employee;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "work_site_id")
+    private WorkSite workSite;
 
     @Column(nullable = false)
     private LocalDate workDate;
@@ -74,6 +79,14 @@ public class WorkHour {
 
     public void setEmployee(Employee employee) {
         this.employee = employee;
+    }
+
+    public WorkSite getWorkSite() {
+        return workSite;
+    }
+
+    public void setWorkSite(WorkSite workSite) {
+        this.workSite = workSite;
     }
 
     public LocalDate getWorkDate() {

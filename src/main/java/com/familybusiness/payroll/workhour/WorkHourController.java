@@ -1,6 +1,7 @@
 package com.familybusiness.payroll.workhour;
 
 import com.familybusiness.payroll.employee.EmployeeService;
+import com.familybusiness.payroll.contractor.ContractorService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,10 +25,16 @@ public class WorkHourController {
 
     private final WorkHourService workHourService;
     private final EmployeeService employeeService;
+    private final ContractorService contractorService;
 
-    public WorkHourController(WorkHourService workHourService, EmployeeService employeeService) {
+    public WorkHourController(
+            WorkHourService workHourService,
+            EmployeeService employeeService,
+            ContractorService contractorService
+    ) {
         this.workHourService = workHourService;
         this.employeeService = employeeService;
+        this.contractorService = contractorService;
     }
 
     @GetMapping
@@ -118,9 +125,6 @@ public class WorkHourController {
                 ? "Partial cash payment saved."
                 : "Work hours marked as paid.";
         redirectAttributes.addFlashAttribute("message", message);
-        if (paymentMethod == PaymentMethod.E_PAYMENT) {
-            return "redirect:" + RBC_ONLINE_BANKING_URL;
-        }
         return "redirect:/work-hours";
     }
 
@@ -133,6 +137,7 @@ public class WorkHourController {
 
     private void addFormOptions(Model model, String pageTitle) {
         model.addAttribute("employees", employeeService.findEmployees(null));
+        model.addAttribute("customers", contractorService.findContractors(null));
         model.addAttribute("pageTitle", pageTitle);
     }
 }
