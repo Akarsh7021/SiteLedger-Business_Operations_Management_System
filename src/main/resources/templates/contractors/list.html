@@ -83,6 +83,11 @@
                            class="secondary-button">
                             Edit Site
                         </a>
+                        <a th:if="${row.hasWorkSite()}"
+                           th:href="@{/customers/{contractorId}/work-sites/{workSiteId}/invoice(contractorId=${row.contractor.id},workSiteId=${row.workSite.id})}"
+                           class="secondary-button">
+                            View Invoice
+                        </a>
                         <form th:if="${row.hasWorkSite()}"
                               th:action="@{/customers/{contractorId}/work-sites/{workSiteId}/delete(contractorId=${row.contractor.id},workSiteId=${row.workSite.id})}"
                               method="post">
@@ -123,12 +128,23 @@
                     <div class="location-results"></div>
                 </label>
 
+                <label>
+                    Type of Service
+                    <select name="serviceType" class="service-type-select" required>
+                        <option th:each="serviceType : ${serviceTypes}"
+                                th:value="${serviceType}"
+                                th:text="${serviceType.displayName}">
+                            Service
+                        </option>
+                    </select>
+                </label>
+
                 <div class="form-grid quote-grid">
-                    <label>
+                    <label class="sft-field">
                         Square Feet (SFT)
                         <input type="number" name="squareArea" class="quote-sft" min="0" step="0.01" required>
                     </label>
-                    <label>
+                    <label class="uom-field">
                         Unit Of Measurement
                         <select name="unitOfMeasurement" class="quote-uom" required>
                             <option th:each="unit : ${unitsOfMeasurement}" th:value="${unit}" th:text="${unit}"></option>

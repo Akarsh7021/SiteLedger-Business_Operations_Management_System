@@ -71,6 +71,10 @@
                 <span th:text="${site.squareArea} + ' sq ft'">0 sq ft</span>
                 <span th:text="'Quoted ' + ${#numbers.formatCurrency(site.quotedAmount)}">Quoted $0.00</span>
                 <span th:text="'GST ' + ${#numbers.formatCurrency(site.gstAmount)}">GST $0.00</span>
+                <a th:href="@{/customers/{contractorId}/work-sites/{workSiteId}/invoice(contractorId=${contractor.id},workSiteId=${site.id})}"
+                   class="secondary-button compact-button">
+                    View Invoice
+                </a>
             </div>
         </div>
         <p th:if="${#lists.isEmpty(contractor.workSites)}" class="empty-state">No work sites added.</p>
@@ -93,12 +97,23 @@
                     <div class="location-results"></div>
                 </label>
 
+                <label>
+                    Type of Service
+                    <select name="serviceType" class="service-type-select" required>
+                        <option th:each="serviceType : ${serviceTypes}"
+                                th:value="${serviceType}"
+                                th:text="${serviceType.displayName}">
+                            Service
+                        </option>
+                    </select>
+                </label>
+
                 <div class="form-grid quote-grid">
-                    <label>
+                    <label class="sft-field">
                         Square Feet (SFT)
                         <input type="number" name="squareArea" class="quote-sft" min="0" step="0.01" required>
                     </label>
-                    <label>
+                    <label class="uom-field">
                         Unit Of Measurement
                         <select name="unitOfMeasurement" class="quote-uom" required>
                             <option th:each="unit : ${unitsOfMeasurement}" th:value="${unit}" th:text="${unit}"></option>

@@ -60,10 +60,10 @@
                                 </div>
                                 <button type="button" class="secondary-button modal-close">Close</button>
                             </div>
-                            <div class="employee-hour-grid" th:if="${!#lists.isEmpty(summary.employeeHours)}">
-                                <div class="employee-hour-box" th:each="employeeHour : ${summary.employeeHours}">
-                                    <strong th:text="${employeeHour.employeeName}">Employee</strong>
-                                    <span th:text="${employeeHour.hours} + ' hours'">0 hours</span>
+                            <div class="employee-hour-list" th:if="${!#lists.isEmpty(summary.employeeHours)}">
+                                <div class="employee-hour-row" th:each="employeeHour : ${summary.employeeHours}">
+                                    <span th:text="${employeeHour.employeeName}">Employee</span>
+                                    <strong th:text="${employeeHour.hours} + ' Hrs'">0 Hrs</strong>
                                 </div>
                             </div>
                             <p th:if="${#lists.isEmpty(summary.employeeHours)}" class="empty-state">No employee hours recorded for this site.</p>
