@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="'Invoice ' + ${workSite.invoiceNumber}">Invoice</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body th:classappend="${printMode} ? ' print-mode' : ''">
+<header class="top-bar invoice-screen-nav">
+    <div class="brand-heading">
+        <img th:src="@{/images/nh-hygiene-logo.png}" alt="NH Hygiene Services Ltd." class="brand-logo">
+        <div>
+            <p class="eyebrow">Invoice</p>
+            <h1 th:text="'Invoice No. ' + ${workSite.invoiceNumber}">Invoice</h1>
+        </div>
+    </div>
+    <nav class="top-nav" aria-label="Primary">
+        <a th:href="@{/customers}" class="secondary-button">Customers</a>
+        <a th:href="@{/customers/{id}(id=${workSite.contractor.id})}" class="secondary-button">Customer Info</a>
+        <a th:href="@{/customers/{contractorId}/work-sites/{workSiteId}/invoice/download(contractorId=${workSite.contractor.id},workSiteId=${workSite.id})}"
+           class="primary-button">
+            Download PDF
+        </a>
+    </nav>
+</header>
+
+<main class="page invoice-page">
+    <div th:if="${message}" class="alert alert-success invoice-screen-nav" th:text="${message}"></div>
+
+    <section class="invoice-tools invoice-screen-nav">
+        <form th:action="@{/customers/{contractorId}/work-sites/{workSiteId}/invoice(contractorId=${workSite.contractor.id},workSiteId=${workSite.id})}"
+              method="post"
+              class="form-panel">
+            <div class="form-grid">
+                <label>
+                    Invoice Date
+                    <input type="date" name="invoiceDate" th:value="${workSite.invoiceDate}" required>
+                </label>
+                <label>
+                    Address
+                    <textarea name="invoiceBillingAddress" rows="3" th:text="${workSite.invoiceBillingAddress}" required></textarea>
+                </label>
+            </div>
+            <button type="submit" class="secondary-button">Save Invoice Details</button>
+        </form>
+
+        <form th:action="@{/customers/{contractorId}/work-sites/{workSiteId}/invoice/items(contractorId=${workSite.contractor.id},workSiteId=${workSite.id})}"
+              method="post"
+              class="form-panel">
+            <p class="eyebrow">Add Particular</p>
+            <label>
+                Particulars
+                <textarea name="description" rows="3" required></textarea>
+            </label>
+            <label>
+                Price
+                <input type="number" name="price" min="0" step="0.01" required>
+            </label>
+            <button type="submit" class="primary-button">+ Add Particular</button>
+        </form>
+    </section>
+
+    <article class="invoice-sheet">
+        <div class="invoice-title">
+            <h2>NH HYGIENES SERVICES LIMITED</h2>
+        </div>
+        <p class="invoice-subtitle">Residential and Commercial Cleaning Services</p>
+
+        <div class="invoice-meta">
+            <strong th:text="'Invoice No.' + ${workSite.invoiceNumber}">Invoice No.1</strong>
+            <strong th:text="'Date: ' + ${#temporals.format(workSite.invoiceDate, 'MMMM d, yyyy')}">Date</strong>
+        </div>
+
+        <div class="invoice-address">
+            <p>To,</p>
+            <p class="pre-line" th:text="${workSite.invoiceBillingAddress}">Customer</p>
+        </div>
+
+        <table class="invoice-table">
+            <thead>
+            <tr>
+                <th>Sr. No.</th>
+                <th>Particulars</th>
+                <th>Price</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>1</td>
+                <td>
+                    <span th:text="${workSite.serviceType.displayName}">Service</span>
+                    <br>
+                    <span th:text="'Job Site: ' + ${workSite.location}">Job Site</span>
+                </td>
+                <td th:text="${#numbers.formatDecimal(workSite.quotedAmount, 1, 2)}">0.00</td>
+            </tr>
+            <tr th:each="item, itemStat : ${workSite.invoiceItems}">
+                <td th:text="${itemStat.index + 2}">2</td>
+                <td>
+                    <span th:text="${item.description}">Particular</span>
+                    <form class="invoice-item-delete invoice-screen-nav"
+                          th:action="@{/customers/{contractorId}/work-sites/{workSiteId}/invoice/items/{itemId}/delete(contractorId=${workSite.contractor.id},workSiteId=${workSite.id},itemId=${item.id})}"
+                          method="post">
+                        <button type="submit" class="danger-button compact-button">Delete</button>
+                    </form>
+                </td>
+                <td th:text="${#numbers.formatDecimal(item.price, 1, 2)}">0.00</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td th:text="${#numbers.formatDecimal(invoiceSubtotal, 1, 2)}">0.00</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>Add : GST (5%)</td>
+                <td th:text="${#numbers.formatDecimal(invoiceGst, 1, 2)}">0.00</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>Total</td>
+                <td th:text="${#numbers.formatDecimal(invoiceTotal, 1, 2)}">0.00</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <section class="invoice-footer">
+            <p><strong><u>GST No.772220810 RT0001</u></strong></p>
+            <p><strong><u>PAYMENT DETAILS:</u></strong></p>
+            <p>Cheque Payable: NH Hygiene Services Ltd.</p>
+            <p>E-transfer: guptapravin00021@gmail.com</p>
+            <p>EFT – Transit #:11650 Inst#:002 Acct.#:0117013</p>
+            <p><strong><u>For NH Hygiene Services Ltd.</u></strong></p>
+            <p><strong><u>Pravin Gupta</u></strong></p>
+        </section>
+
+        <footer class="invoice-contact">
+            <p>13475 96 Avenue Surrey – BC V3V 1Y8</p>
+            <p>Cell No.778-682-1279 Email id : info@nhhygieneservices.ca www.nhhygieneservices.ca</p>
+        </footer>
+    </article>
+</main>
+<script>
+    if (document.body.classList.contains("print-mode")) {
+        window.addEventListener("load", () => window.print());
+    }
+</script>
+</body>
+</html>
