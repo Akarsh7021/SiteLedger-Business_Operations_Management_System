@@ -18,6 +18,9 @@ public class WorkSiteForm {
     @Size(max = 255, message = "Work site location must be 255 characters or less")
     private String location;
 
+    @NotNull(message = "Type of service is required")
+    private ServiceType serviceType = ServiceType.DEEP_FULL_SERVICE_CLEANUP;
+
     @NotNull(message = "Quoted amount is required")
     @DecimalMin(value = "0.00", message = "Quoted amount cannot be negative")
     @Digits(integer = 8, fraction = 2, message = "Quoted amount must use dollars and cents")
@@ -40,6 +43,7 @@ public class WorkSiteForm {
         form.setId(workSite.getId());
         form.setContractorId(workSite.getContractor().getId());
         form.setLocation(workSite.getLocation());
+        form.setServiceType(workSite.getServiceType());
         form.setQuotedAmount(workSite.getQuotedAmount());
         form.setSquareArea(workSite.getSquareArea());
         form.setUnitOfMeasurement(workSite.getUnitOfMeasurement());
@@ -70,6 +74,14 @@ public class WorkSiteForm {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public ServiceType getServiceType() {
+        return serviceType;
+    }
+
+    public void setServiceType(ServiceType serviceType) {
+        this.serviceType = serviceType;
     }
 
     public BigDecimal getQuotedAmount() {
