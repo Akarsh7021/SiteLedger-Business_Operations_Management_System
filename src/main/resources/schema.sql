@@ -58,6 +58,8 @@ CREATE TABLE IF NOT EXISTS contractor_work_sites (
     id INTEGER PRIMARY KEY,
     contractor_id INTEGER NOT NULL,
     location VARCHAR(255) NOT NULL,
+    service_type VARCHAR(40) NOT NULL DEFAULT 'DEEP_FULL_SERVICE_CLEANUP'
+        CHECK (service_type IN ('DEEP_FULL_SERVICE_CLEANUP', 'GENERAL_CLEANUP', 'PRESSURE_WASH', 'HANDOVER_CLEANUP')),
     quoted_amount NUMERIC(10, 2) NOT NULL DEFAULT 0,
     square_area NUMERIC(10, 2) NOT NULL DEFAULT 0,
     unit_of_measurement VARCHAR(20) NOT NULL DEFAULT 'SFT'
@@ -65,7 +67,18 @@ CREATE TABLE IF NOT EXISTS contractor_work_sites (
     gst_amount NUMERIC(10, 2) NOT NULL DEFAULT 0,
     status VARCHAR(20) NOT NULL DEFAULT 'IN_PROGRESS'
         CHECK (status IN ('IN_PROGRESS', 'COMPLETE')),
+    invoice_number INTEGER UNIQUE,
+    invoice_date DATE,
+    invoice_billing_address VARCHAR(1000),
     FOREIGN KEY (contractor_id) REFERENCES contractors(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS invoice_items (
+    id INTEGER PRIMARY KEY,
+    work_site_id INTEGER NOT NULL,
+    description VARCHAR(1000) NOT NULL,
+    price NUMERIC(10, 2) NOT NULL DEFAULT 0,
+    FOREIGN KEY (work_site_id) REFERENCES contractor_work_sites(id) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_work_hours_work_site_id
@@ -76,3 +89,6 @@ CREATE INDEX IF NOT EXISTS idx_contractors_name
 
 CREATE INDEX IF NOT EXISTS idx_contractor_work_sites_contractor_id
     ON contractor_work_sites(contractor_id);
+
+CREATE INDEX IF NOT EXISTS idx_invoice_items_work_site_id
+    ON invoice_items(work_site_id);

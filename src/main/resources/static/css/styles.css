@@ -478,25 +478,166 @@ tr:last-child td {
     margin: 0;
 }
 
-.employee-hour-grid {
+.employee-hour-list {
     display: grid;
-    gap: 10px;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
 }
 
-.employee-hour-box {
+.employee-hour-row {
+    align-items: center;
     background: #f4fbf8;
     border: 1px solid var(--line);
     border-radius: 8px;
-    display: grid;
-    gap: 5px;
+    display: flex;
+    justify-content: space-between;
     padding: 12px;
 }
 
-.employee-hour-box span {
+.employee-hour-row span {
     color: var(--muted);
-    font-size: 13px;
     font-weight: 800;
+}
+
+.invoice-page {
+    max-width: 1000px;
+}
+
+.invoice-tools {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: 1fr 1fr;
+    margin-bottom: 20px;
+}
+
+.invoice-sheet {
+    background: #ffffff;
+    border: 2px solid #222;
+    color: #111;
+    margin: 0 auto;
+    min-height: 1120px;
+    padding: 28px 88px 70px;
+    width: 850px;
+}
+
+.invoice-title {
+    background: #4776c4;
+    color: #ffffff;
+    margin: 0 auto 4px;
+    padding: 8px 18px;
+    text-align: center;
+}
+
+.invoice-title h2 {
+    font-size: 27px;
+    letter-spacing: 0;
+    margin: 0;
+}
+
+.invoice-subtitle {
+    color: #4776c4;
+    font-style: italic;
+    font-weight: 700;
+    margin: 0 0 28px;
+    text-align: center;
+}
+
+.invoice-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.invoice-address {
+    line-height: 1.45;
+    margin-bottom: 24px;
+}
+
+.pre-line {
+    white-space: pre-line;
+}
+
+.invoice-address p {
+    margin: 0 0 4px;
+}
+
+.invoice-table {
+    border-collapse: collapse;
+    min-width: 0;
+    width: 100%;
+}
+
+.invoice-table th,
+.invoice-table td {
+    border: 1px solid #222;
+    color: #111;
+    padding: 10px;
+}
+
+.invoice-table th {
+    background: #ffffff;
+    color: #111;
+    font-size: 15px;
+    text-align: center;
+    text-transform: none;
+}
+
+.invoice-table td:first-child,
+.invoice-table th:first-child {
+    width: 70px;
+}
+
+.invoice-table td:last-child,
+.invoice-table th:last-child {
+    width: 85px;
+}
+
+.invoice-table tbody tr:first-child td {
+    height: 320px;
+    vertical-align: middle;
+}
+
+.invoice-footer {
+    line-height: 1.55;
+}
+
+.invoice-contact {
+    margin-top: 58px;
+    text-align: center;
+}
+
+.invoice-contact p {
+    margin: 2px 0;
+}
+
+.invoice-item-delete {
+    margin-top: 8px;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+@media print {
+    body {
+        background: #ffffff;
+    }
+
+    .invoice-screen-nav {
+        display: none !important;
+    }
+
+    .page {
+        max-width: none;
+        padding: 0;
+    }
+
+    .invoice-sheet {
+        border: 0;
+        box-shadow: none;
+        min-height: auto;
+        padding: 20px 70px;
+        width: 100%;
+    }
 }
 
 .payment-pill {
