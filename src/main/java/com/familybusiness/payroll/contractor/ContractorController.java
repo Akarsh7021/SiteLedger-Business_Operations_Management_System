@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
 @Controller
 @RequestMapping({"/customers", "/contractors"})
 public class ContractorController {
@@ -194,8 +197,69 @@ public class ContractorController {
         return "redirect:/customers";
     }
 
+    @GetMapping("/{contractorId}/work-sites/{workSiteId}/invoice")
+    public String viewInvoice(@PathVariable Long contractorId, @PathVariable Long workSiteId, Model model) {
+        WorkSite workSite = contractorService.prepareInvoice(workSiteId);
+        model.addAttribute("workSite", workSite);
+        model.addAttribute("invoiceSubtotal", contractorService.invoiceSubtotal(workSite));
+        model.addAttribute("invoiceGst", contractorService.invoiceGst(workSite));
+        model.addAttribute("invoiceTotal", contractorService.invoiceTotal(workSite));
+        model.addAttribute("printMode", false);
+        return "contractors/invoice";
+    }
+
+    @GetMapping("/{contractorId}/work-sites/{workSiteId}/invoice/download")
+    public String downloadInvoice(@PathVariable Long contractorId, @PathVariable Long workSiteId, Model model) {
+        WorkSite workSite = contractorService.prepareInvoice(workSiteId);
+        model.addAttribute("workSite", workSite);
+        model.addAttribute("invoiceSubtotal", contractorService.invoiceSubtotal(workSite));
+        model.addAttribute("invoiceGst", contractorService.invoiceGst(workSite));
+        model.addAttribute("invoiceTotal", contractorService.invoiceTotal(workSite));
+        model.addAttribute("printMode", true);
+        return "contractors/invoice";
+    }
+
+    @PostMapping("/{contractorId}/work-sites/{workSiteId}/invoice")
+    public String updateInvoice(
+            @PathVariable Long contractorId,
+            @PathVariable Long workSiteId,
+            @RequestParam LocalDate invoiceDate,
+            @RequestParam String invoiceBillingAddress,
+            RedirectAttributes redirectAttributes
+    ) {
+        contractorService.updateInvoice(workSiteId, invoiceDate, invoiceBillingAddress);
+        redirectAttributes.addFlashAttribute("message", "Invoice updated.");
+        return "redirect:/customers/" + contractorId + "/work-sites/" + workSiteId + "/invoice";
+    }
+
+    @PostMapping("/{contractorId}/work-sites/{workSiteId}/invoice/items")
+    public String addInvoiceItem(
+            @PathVariable Long contractorId,
+            @PathVariable Long workSiteId,
+            @RequestParam String description,
+            @RequestParam BigDecimal price,
+            RedirectAttributes redirectAttributes
+    ) {
+        contractorService.addInvoiceItem(workSiteId, description, price);
+        redirectAttributes.addFlashAttribute("message", "Invoice item added.");
+        return "redirect:/customers/" + contractorId + "/work-sites/" + workSiteId + "/invoice";
+    }
+
+    @PostMapping("/{contractorId}/work-sites/{workSiteId}/invoice/items/{itemId}/delete")
+    public String deleteInvoiceItem(
+            @PathVariable Long contractorId,
+            @PathVariable Long workSiteId,
+            @PathVariable Long itemId,
+            RedirectAttributes redirectAttributes
+    ) {
+        contractorService.deleteInvoiceItem(itemId);
+        redirectAttributes.addFlashAttribute("message", "Invoice item deleted.");
+        return "redirect:/customers/" + contractorId + "/work-sites/" + workSiteId + "/invoice";
+    }
+
     private void addWorkSiteOptions(Model model) {
         model.addAttribute("unitsOfMeasurement", UnitOfMeasurement.values());
         model.addAttribute("workSiteStatuses", WorkSiteStatus.values());
+        model.addAttribute("serviceTypes", ServiceType.values());
     }
 }

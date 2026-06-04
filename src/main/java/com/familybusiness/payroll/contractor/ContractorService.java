@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,10 +20,16 @@ public class ContractorService {
 
     private final ContractorRepository contractorRepository;
     private final WorkSiteRepository workSiteRepository;
+    private final InvoiceItemRepository invoiceItemRepository;
 
-    public ContractorService(ContractorRepository contractorRepository, WorkSiteRepository workSiteRepository) {
+    public ContractorService(
+            ContractorRepository contractorRepository,
+            WorkSiteRepository workSiteRepository,
+            InvoiceItemRepository invoiceItemRepository
+    ) {
         this.contractorRepository = contractorRepository;
         this.workSiteRepository = workSiteRepository;
+        this.invoiceItemRepository = invoiceItemRepository;
     }
 
     @Transactional(readOnly = true)
@@ -107,6 +114,60 @@ public class ContractorService {
         workSiteRepository.delete(workSite);
     }
 
+    public WorkSite prepareInvoice(Long workSiteId) {
+        WorkSite workSite = getWorkSite(workSiteId);
+        if (workSite.getInvoiceNumber() == null) {
+            workSite.setInvoiceNumber(nextInvoiceNumber());
+        }
+        if (workSite.getStatus() == WorkSiteStatus.COMPLETE) {
+            if (workSite.getInvoiceDate() == null) {
+                workSite.setInvoiceDate(LocalDate.now());
+            }
+        } else {
+            workSite.setInvoiceDate(LocalDate.now());
+        }
+        if (workSite.getInvoiceBillingAddress() == null || workSite.getInvoiceBillingAddress().isBlank()) {
+            workSite.setInvoiceBillingAddress(defaultBillingAddress(workSite));
+        }
+        return workSiteRepository.save(workSite);
+    }
+
+    public WorkSite updateInvoice(Long workSiteId, LocalDate invoiceDate, String invoiceBillingAddress) {
+        WorkSite workSite = prepareInvoice(workSiteId);
+        workSite.setInvoiceDate(invoiceDate);
+        workSite.setInvoiceBillingAddress(cleanOptionalText(invoiceBillingAddress));
+        return workSiteRepository.save(workSite);
+    }
+
+    public void addInvoiceItem(Long workSiteId, String description, BigDecimal price) {
+        WorkSite workSite = prepareInvoice(workSiteId);
+        InvoiceItem item = new InvoiceItem();
+        item.setWorkSite(workSite);
+        item.setDescription(description.trim());
+        item.setPrice(price == null ? BigDecimal.ZERO : price.setScale(2, RoundingMode.HALF_UP));
+        invoiceItemRepository.save(item);
+    }
+
+    public void deleteInvoiceItem(Long itemId) {
+        invoiceItemRepository.deleteById(itemId);
+    }
+
+    public BigDecimal invoiceSubtotal(WorkSite workSite) {
+        BigDecimal subtotal = workSite.getQuotedAmount();
+        for (InvoiceItem item : workSite.getInvoiceItems()) {
+            subtotal = subtotal.add(item.getPrice());
+        }
+        return subtotal.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    public BigDecimal invoiceGst(WorkSite workSite) {
+        return invoiceSubtotal(workSite).multiply(GST_RATE).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    public BigDecimal invoiceTotal(WorkSite workSite) {
+        return invoiceSubtotal(workSite).add(invoiceGst(workSite)).setScale(2, RoundingMode.HALF_UP);
+    }
+
     private void copyFormToContractor(ContractorForm form, Contractor contractor) {
         contractor.setName(form.getName().trim());
         contractor.setPhoneNumber(cleanOptionalText(form.getPhoneNumber()));
@@ -120,6 +181,7 @@ public class ContractorService {
 
     private void copyFormToWorkSite(WorkSiteForm form, WorkSite workSite) {
         workSite.setLocation(form.getLocation().trim());
+        workSite.setServiceType(form.getServiceType());
         workSite.setSquareArea(form.getSquareArea());
         workSite.setUnitOfMeasurement(form.getUnitOfMeasurement());
         workSite.setQuotedAmount(resolveQuotedAmount(form));
@@ -129,11 +191,31 @@ public class ContractorService {
 
     private BigDecimal resolveQuotedAmount(WorkSiteForm form) {
         BigDecimal squareArea = form.getSquareArea() == null ? BigDecimal.ZERO : form.getSquareArea();
-        if (form.getUnitOfMeasurement() == UnitOfMeasurement.SFT) {
+        if (form.getServiceType() == ServiceType.DEEP_FULL_SERVICE_CLEANUP
+                && form.getUnitOfMeasurement() == UnitOfMeasurement.SFT) {
             return squareArea.multiply(SQUARE_FOOT_RATE).setScale(2, RoundingMode.HALF_UP);
         }
         BigDecimal quotedAmount = form.getQuotedAmount() == null ? BigDecimal.ZERO : form.getQuotedAmount();
         return quotedAmount.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private Integer nextInvoiceNumber() {
+        Integer maxInvoiceNumber = workSiteRepository.findMaxInvoiceNumber();
+        if (maxInvoiceNumber == null) {
+            return 1;
+        }
+        return maxInvoiceNumber + 1;
+    }
+
+    private String defaultBillingAddress(WorkSite workSite) {
+        Contractor contractor = workSite.getContractor();
+        String billingName = contractor.getBillingName() == null || contractor.getBillingName().isBlank()
+                ? contractor.getName()
+                : contractor.getBillingName();
+        if (contractor.getAddress() == null || contractor.getAddress().isBlank()) {
+            return billingName;
+        }
+        return billingName + System.lineSeparator() + contractor.getAddress();
     }
 
     private String cleanOptionalText(String value) {
