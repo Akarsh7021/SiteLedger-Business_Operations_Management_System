@@ -18,8 +18,9 @@ public class WorkSiteForm {
     @Size(max = 255, message = "Work site location must be 255 characters or less")
     private String location;
 
-    @NotNull(message = "Type of service is required")
-    private ServiceType serviceType = ServiceType.DEEP_FULL_SERVICE_CLEANUP;
+    @NotBlank(message = "Type of service is required")
+    @Size(max = 40, message = "Type of service must be 40 characters or less")
+    private String serviceType = "";
 
     @NotNull(message = "Quoted amount is required")
     @DecimalMin(value = "0.00", message = "Quoted amount cannot be negative")
@@ -76,11 +77,11 @@ public class WorkSiteForm {
         this.location = location;
     }
 
-    public ServiceType getServiceType() {
+    public String getServiceType() {
         return serviceType;
     }
 
-    public void setServiceType(ServiceType serviceType) {
+    public void setServiceType(String serviceType) {
         this.serviceType = serviceType;
     }
 

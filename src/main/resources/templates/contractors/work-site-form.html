@@ -15,7 +15,20 @@
             <h1 th:text="${pageTitle}">Work Site</h1>
         </div>
     </div>
-    <a th:href="@{/customers}" class="secondary-button">Back</a>
+    <nav class="top-nav" aria-label="Primary">
+        <a th:href="@{/dashboard}" class="secondary-button">Dashboard</a>
+        <a th:href="@{/customers}" class="secondary-button active-nav">Customers</a>
+        <a th:href="@{/employees}" class="secondary-button">Employees</a>
+        <a th:href="@{/work-hours}" class="secondary-button">Work Hours</a>
+        <a th:href="@{/site-hours}" class="secondary-button">Site Hours</a>
+        <button type="button" class="theme-toggle" data-theme-toggle aria-label="Toggle dark mode">
+            <span class="theme-toggle-track"><span class="theme-toggle-thumb"></span></span>
+            <span data-theme-label>Light</span>
+        </button>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="secondary-button">Logout</button>
+        </form>
+    </nav>
 </header>
 
 <main class="page narrow-page">
@@ -35,10 +48,11 @@
 
         <label>
             Type of Service
-            <select th:field="*{serviceType}" class="service-type-select" required>
+            <select th:field="*{serviceType}" class="service-type-select odoo-select" data-service-select="true" data-search-more="true" required>
+                <option value="">Select service</option>
                 <option th:each="serviceType : ${serviceTypes}"
-                        th:value="${serviceType}"
-                        th:text="${serviceType.displayName}">
+                        th:value="${serviceType.value}"
+                        th:text="${serviceType.label}">
                     Service
                 </option>
             </select>

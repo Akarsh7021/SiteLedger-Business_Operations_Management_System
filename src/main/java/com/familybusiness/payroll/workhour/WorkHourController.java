@@ -81,9 +81,6 @@ public class WorkHourController {
     @GetMapping("/{id}/edit")
     public String editWorkHour(@PathVariable Long id, Model model) {
         WorkHour workHour = workHourService.getWorkHour(id);
-        if (workHour.getPaymentStatus() == PaymentStatus.PAID) {
-            return "redirect:/work-hours";
-        }
         model.addAttribute("workHourForm", WorkHourForm.fromWorkHour(workHour));
         addFormOptions(model, "Edit Work Hours");
         return "work-hours/form";

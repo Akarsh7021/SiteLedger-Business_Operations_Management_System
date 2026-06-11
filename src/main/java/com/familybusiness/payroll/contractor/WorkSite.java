@@ -34,9 +34,8 @@ public class WorkSite {
     @Column(nullable = false, length = 255)
     private String location;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 40)
-    private ServiceType serviceType = ServiceType.DEEP_FULL_SERVICE_CLEANUP;
+    private String serviceType = ServiceType.DEEP_FULL_SERVICE_CLEANUP.name();
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal quotedAmount = BigDecimal.ZERO;
@@ -90,15 +89,19 @@ public class WorkSite {
         this.location = location;
     }
 
-    public ServiceType getServiceType() {
-        if (serviceType == null) {
-            return ServiceType.DEEP_FULL_SERVICE_CLEANUP;
+    public String getServiceType() {
+        if (serviceType == null || serviceType.isBlank()) {
+            return ServiceType.DEEP_FULL_SERVICE_CLEANUP.name();
         }
         return serviceType;
     }
 
-    public void setServiceType(ServiceType serviceType) {
+    public void setServiceType(String serviceType) {
         this.serviceType = serviceType;
+    }
+
+    public String getServiceTypeDisplayName() {
+        return ServiceType.displayNameFor(getServiceType());
     }
 
     public BigDecimal getQuotedAmount() {

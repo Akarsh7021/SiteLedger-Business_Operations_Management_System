@@ -6,6 +6,7 @@ import com.familybusiness.payroll.employee.EmployeeRepository;
 import com.familybusiness.payroll.contractor.WorkSite;
 import com.familybusiness.payroll.contractor.WorkSiteNotFoundException;
 import com.familybusiness.payroll.contractor.WorkSiteRepository;
+import com.familybusiness.payroll.deletehistory.DeleteHistoryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,15 +21,18 @@ public class WorkHourService {
     private final WorkHourRepository workHourRepository;
     private final EmployeeRepository employeeRepository;
     private final WorkSiteRepository workSiteRepository;
+    private final DeleteHistoryService deleteHistoryService;
 
     public WorkHourService(
             WorkHourRepository workHourRepository,
             EmployeeRepository employeeRepository,
-            WorkSiteRepository workSiteRepository
+            WorkSiteRepository workSiteRepository,
+            DeleteHistoryService deleteHistoryService
     ) {
         this.workHourRepository = workHourRepository;
         this.employeeRepository = employeeRepository;
         this.workSiteRepository = workSiteRepository;
+        this.deleteHistoryService = deleteHistoryService;
     }
 
     @Transactional(readOnly = true)
@@ -67,10 +71,10 @@ public class WorkHourService {
 
     public WorkHour updateWorkHour(Long id, WorkHourForm form) {
         WorkHour workHour = getWorkHour(id);
-        if (workHour.getPaymentStatus() == PaymentStatus.PAID) {
-            throw new IllegalStateException("Paid work hours cannot be edited.");
-        }
         copyFormToWorkHour(form, workHour);
+        if (workHour.getPaymentStatus() == PaymentStatus.PAID) {
+            workHour.setPartialPaymentAmount(workHour.getTotalPaymentAmount());
+        }
         return workHourRepository.save(workHour);
     }
 
@@ -101,9 +105,13 @@ public class WorkHourService {
 
     public void deleteWorkHour(Long id) {
         WorkHour workHour = getWorkHour(id);
-        if (workHour.getPaymentStatus() == PaymentStatus.PAID) {
-            throw new IllegalStateException("Paid work hours cannot be deleted.");
-        }
+        deleteHistoryService.record(
+                "Work Hours",
+                workHour.getEmployee().getFullName(),
+                "Date: " + workHour.getWorkDate()
+                        + ", hours: " + workHour.getTotalHours()
+                        + ", site: " + (workHour.getWorkSite() == null ? "-" : workHour.getWorkSite().getLocation())
+        );
         workHourRepository.delete(workHour);
     }
 
