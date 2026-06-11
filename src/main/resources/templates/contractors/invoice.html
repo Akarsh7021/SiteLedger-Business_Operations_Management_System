@@ -18,7 +18,7 @@
     <nav class="top-nav" aria-label="Primary">
         <a th:href="@{/customers}" class="secondary-button">Customers</a>
         <a th:href="@{/customers/{id}(id=${workSite.contractor.id})}" class="secondary-button">Customer Info</a>
-        <a th:href="@{/customers/{contractorId}/work-sites/{workSiteId}/invoice/download(contractorId=${workSite.contractor.id},workSiteId=${workSite.id})}"
+        <a th:href="@{/customers/{contractorId}/work-sites/{workSiteId}/invoice/pdf(contractorId=${workSite.contractor.id},workSiteId=${workSite.id})}"
            class="primary-button">
             Download PDF
         </a>
@@ -86,38 +86,54 @@
             </tr>
             </thead>
             <tbody>
-            <tr>
-                <td>1</td>
+            <tr class="invoice-particular-row">
                 <td>
-                    <span th:text="${workSite.serviceType.displayName}">Service</span>
-                    <br>
-                    <span th:text="'Job Site: ' + ${workSite.location}">Job Site</span>
+                    <div class="invoice-sr-stack">
+                        <span>1</span>
+                        <span th:each="item, itemStat : ${workSite.invoiceItems}"
+                              th:text="${itemStat.index + 2}">
+                            2
+                        </span>
+                    </div>
                 </td>
-                <td th:text="${#numbers.formatDecimal(workSite.quotedAmount, 1, 2)}">0.00</td>
-            </tr>
-            <tr th:each="item, itemStat : ${workSite.invoiceItems}">
-                <td th:text="${itemStat.index + 2}">2</td>
                 <td>
-                    <span th:text="${item.description}">Particular</span>
-                    <form class="invoice-item-delete invoice-screen-nav"
-                          th:action="@{/customers/{contractorId}/work-sites/{workSiteId}/invoice/items/{itemId}/delete(contractorId=${workSite.contractor.id},workSiteId=${workSite.id},itemId=${item.id})}"
-                          method="post">
-                        <button type="submit" class="danger-button compact-button">Delete</button>
-                    </form>
+                    <div class="invoice-particulars-stack">
+                        <div class="invoice-main-particular">
+                            <span th:text="${workSite.serviceType.displayName}">Service</span>
+                            <br>
+                            <span th:text="'Job Site: ' + ${workSite.location}">Job Site</span>
+                        </div>
+                        <div th:each="item : ${workSite.invoiceItems}" class="invoice-extra-item">
+                            <span th:text="${item.description}">Particular</span>
+                            <form class="invoice-item-delete invoice-screen-nav"
+                                  th:action="@{/customers/{contractorId}/work-sites/{workSiteId}/invoice/items/{itemId}/delete(contractorId=${workSite.contractor.id},workSiteId=${workSite.id},itemId=${item.id})}"
+                                  method="post">
+                                <button type="submit" class="danger-button compact-button">Delete</button>
+                            </form>
+                        </div>
+                    </div>
                 </td>
-                <td th:text="${#numbers.formatDecimal(item.price, 1, 2)}">0.00</td>
+                <td>
+                    <div class="invoice-price-stack">
+                        <span th:text="${#numbers.formatDecimal(workSite.quotedAmount, 1, 2)}">0.00</span>
+                        <span th:each="item : ${workSite.invoiceItems}"
+                              th:text="${#numbers.formatDecimal(item.price, 1, 2)}">
+                            0.00
+                        </span>
+                    </div>
+                </td>
             </tr>
-            <tr>
+            <tr class="invoice-summary-row invoice-subtotal-row">
                 <td></td>
                 <td></td>
                 <td th:text="${#numbers.formatDecimal(invoiceSubtotal, 1, 2)}">0.00</td>
             </tr>
-            <tr>
+            <tr class="invoice-summary-row invoice-gst-row">
                 <td></td>
                 <td>Add : GST (5%)</td>
                 <td th:text="${#numbers.formatDecimal(invoiceGst, 1, 2)}">0.00</td>
             </tr>
-            <tr>
+            <tr class="invoice-summary-row invoice-total-row">
                 <td></td>
                 <td>Total</td>
                 <td th:text="${#numbers.formatDecimal(invoiceTotal, 1, 2)}">0.00</td>
@@ -126,13 +142,13 @@
         </table>
 
         <section class="invoice-footer">
-            <p><strong><u>GST No.772220810 RT0001</u></strong></p>
-            <p><strong><u>PAYMENT DETAILS:</u></strong></p>
+            <p><strong class="invoice-underline">GST No.772220810 RT0001</strong></p>
+            <p><strong class="invoice-underline">PAYMENT DETAILS:</strong></p>
             <p>Cheque Payable: NH Hygiene Services Ltd.</p>
             <p>E-transfer: guptapravin00021@gmail.com</p>
             <p>EFT – Transit #:11650 Inst#:002 Acct.#:0117013</p>
-            <p><strong><u>For NH Hygiene Services Ltd.</u></strong></p>
-            <p><strong><u>Pravin Gupta</u></strong></p>
+            <p><strong class="invoice-underline">For NH Hygiene Services Ltd.</strong></p>
+            <p><strong class="invoice-underline">Pravin Gupta</strong></p>
         </section>
 
         <footer class="invoice-contact">

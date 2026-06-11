@@ -1,6 +1,10 @@
 package com.familybusiness.payroll.contractor;
 
 import jakarta.validation.Valid;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -217,6 +221,22 @@ public class ContractorController {
         model.addAttribute("invoiceTotal", contractorService.invoiceTotal(workSite));
         model.addAttribute("printMode", true);
         return "contractors/invoice";
+    }
+
+    @GetMapping("/{contractorId}/work-sites/{workSiteId}/invoice/pdf")
+    public ResponseEntity<byte[]> downloadInvoicePdf(@PathVariable Long contractorId, @PathVariable Long workSiteId) {
+        WorkSite workSite = contractorService.prepareInvoice(workSiteId);
+        byte[] pdf = new InvoicePdfRenderer().render(
+                workSite,
+                contractorService.invoiceSubtotal(workSite),
+                contractorService.invoiceGst(workSite),
+                contractorService.invoiceTotal(workSite)
+        );
+        String fileName = "invoice-" + workSite.getInvoiceNumber() + ".pdf";
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(fileName).build().toString())
+                .body(pdf);
     }
 
     @PostMapping("/{contractorId}/work-sites/{workSiteId}/invoice")

@@ -409,6 +409,7 @@ tr:last-child td {
     font-size: 12px;
     font-weight: 800;
     padding: 4px 9px;
+    white-space: nowrap;
 }
 
 .status-complete {
@@ -513,9 +514,10 @@ tr:last-child td {
     background: #ffffff;
     border: 2px solid #222;
     color: #111;
+    font-family: Aptos, "Aptos Display", "Noto Sans", Arial, sans-serif;
     margin: 0 auto;
-    min-height: 1120px;
-    padding: 28px 88px 70px;
+    min-height: 1040px;
+    padding: 24px 88px 46px;
     width: 850px;
 }
 
@@ -528,6 +530,7 @@ tr:last-child td {
 }
 
 .invoice-title h2 {
+    color: #ffffff;
     font-size: 27px;
     letter-spacing: 0;
     margin: 0;
@@ -537,19 +540,19 @@ tr:last-child td {
     color: #4776c4;
     font-style: italic;
     font-weight: 700;
-    margin: 0 0 28px;
+    margin: 0 0 20px;
     text-align: center;
 }
 
 .invoice-meta {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
 }
 
 .invoice-address {
     line-height: 1.45;
-    margin-bottom: 24px;
+    margin-bottom: 10px;
 }
 
 .pre-line {
@@ -591,13 +594,73 @@ tr:last-child td {
     width: 85px;
 }
 
-.invoice-table tbody tr:first-child td {
-    height: 320px;
+.invoice-table .invoice-particular-row td {
+    height: 215px;
     vertical-align: middle;
 }
 
+.invoice-sr-stack,
+.invoice-particulars-stack,
+.invoice-price-stack {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    justify-content: center;
+    max-height: 176px;
+    overflow: hidden;
+    text-align: left;
+}
+
+.invoice-sr-stack,
+.invoice-price-stack {
+    align-items: center;
+}
+
+.invoice-main-particular,
+.invoice-extra-item {
+    margin: 0;
+    max-width: 100%;
+}
+
+.invoice-extra-item {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+}
+
+.invoice-price-stack {
+    font-weight: 700;
+    text-align: right;
+}
+
+.invoice-summary-row td {
+    height: 34px;
+    padding-bottom: 6px;
+    padding-top: 6px;
+}
+
+.invoice-subtotal-row td,
+.invoice-gst-row td {
+    border-bottom: 0;
+}
+
+.invoice-gst-row td {
+    border-top: 0;
+}
+
+.invoice-total-row td {
+    border-bottom: 1px solid #222 !important;
+}
+
 .invoice-footer {
-    line-height: 1.55;
+    line-height: 1.45;
+}
+
+.invoice-underline {
+    text-decoration-line: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
 }
 
 .invoice-contact {
@@ -618,6 +681,11 @@ tr:last-child td {
 }
 
 @media print {
+    @page {
+        margin: 0.35in;
+        size: letter;
+    }
+
     body {
         background: #ffffff;
     }
@@ -635,8 +703,40 @@ tr:last-child td {
         border: 0;
         box-shadow: none;
         min-height: auto;
-        padding: 20px 70px;
+        padding: 0;
         width: 100%;
+    }
+
+    .invoice-title h2 {
+        font-size: 24px;
+    }
+
+    .invoice-subtitle,
+    .invoice-meta,
+    .invoice-address,
+    .invoice-footer,
+    .invoice-contact {
+        font-size: 13px;
+    }
+
+    .invoice-table th,
+    .invoice-table td {
+        font-size: 13px;
+        padding: 7px;
+    }
+
+    .invoice-table .invoice-particular-row td {
+        height: 185px;
+    }
+
+    .invoice-particulars-stack,
+    .invoice-sr-stack,
+    .invoice-price-stack {
+        max-height: 150px;
+    }
+
+    .invoice-contact {
+        margin-top: 42px;
     }
 }
 
