@@ -38,7 +38,7 @@ public class SiteHourService {
             Map<String, BigDecimal> employeeHours = new LinkedHashMap<>();
 
             for (WorkHour workHour : workHours) {
-                if (!workSite.getId().equals(workHour.getWorkSite().getId())) {
+                if (workHour.getWorkSite() == null || !workSite.getId().equals(workHour.getWorkSite().getId())) {
                     continue;
                 }
                 BigDecimal hours = workHour.getTotalHours();

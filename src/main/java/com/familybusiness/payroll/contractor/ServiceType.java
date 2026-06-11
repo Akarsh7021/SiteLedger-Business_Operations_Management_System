@@ -15,4 +15,20 @@ public enum ServiceType {
     public String getDisplayName() {
         return displayName;
     }
+
+    public static String displayNameFor(String value) {
+        if (value == null || value.isBlank()) {
+            return DEEP_FULL_SERVICE_CLEANUP.displayName;
+        }
+        for (ServiceType type : values()) {
+            if (type.name().equals(value)) {
+                return type.displayName;
+            }
+        }
+        return value;
+    }
+
+    public static boolean isDeepFullServiceCleanup(String value) {
+        return DEEP_FULL_SERVICE_CLEANUP.name().equals(value);
+    }
 }

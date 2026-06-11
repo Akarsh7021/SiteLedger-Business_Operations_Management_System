@@ -16,9 +16,15 @@
         </div>
     </div>
     <nav class="top-nav" aria-label="Primary">
+        <a th:href="@{/dashboard}" class="secondary-button">Dashboard</a>
+        <a th:href="@{/customers}" class="secondary-button">Customers</a>
         <a th:href="@{/employees}" class="secondary-button">Employees</a>
         <a th:href="@{/work-hours}" class="secondary-button">Work Hours</a>
-        <a th:href="@{/customers}" class="secondary-button">Customers</a>
+        <a th:href="@{/site-hours}" class="secondary-button active-nav">Site Hours</a>
+        <button type="button" class="theme-toggle" data-theme-toggle aria-label="Toggle dark mode">
+            <span class="theme-toggle-track"><span class="theme-toggle-thumb"></span></span>
+            <span data-theme-label>Light</span>
+        </button>
         <form th:action="@{/logout}" method="post">
             <button type="submit" class="secondary-button">Logout</button>
         </form>
@@ -27,6 +33,13 @@
 
 <main class="page">
     <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+
+    <section class="toolbar">
+        <div></div>
+        <div class="toolbar-actions">
+            <a th:href="@{/delete-history}" class="secondary-button">Delete History</a>
+        </div>
+    </section>
 
     <section class="table-panel">
         <table class="site-hours-table">
@@ -67,19 +80,22 @@
                                 </div>
                             </div>
                             <p th:if="${#lists.isEmpty(summary.employeeHours)}" class="empty-state">No employee hours recorded for this site.</p>
+                            <div class="modal-actions">
+                                <button type="button" class="secondary-button modal-close">Close</button>
+                            </div>
                         </section>
                     </div>
                 </td>
                 <td th:text="${#numbers.formatCurrency(summary.totalSpent)}">$0.00</td>
                 <td>
-                    <span th:classappend="${summary.workSite.status.name() == 'COMPLETE'} ? ' status-complete' : ''"
+                    <span th:classappend="${summary.workSite.status.name() == 'COMPLETE'} ? ' status-complete' : ' status-progress'"
                           class="status-pill"
                           th:text="${summary.workSite.status.name() == 'COMPLETE' ? 'Complete' : 'In Progress'}">
                         In Progress
                     </span>
                 </td>
                 <td>
-                    <div class="table-actions">
+                    <div class="site-hour-action-grid">
                         <form th:action="@{/site-hours/{workSiteId}/status(workSiteId=${summary.workSite.id})}" method="post">
                             <input type="hidden"
                                    name="status"
@@ -94,6 +110,20 @@
                            class="secondary-button">
                             Edit Site
                         </a>
+                        <form th:action="@{/customers/{contractorId}/work-sites/{workSiteId}/delete(contractorId=${summary.workSite.contractor.id},workSiteId=${summary.workSite.id})}"
+                              method="post"
+                              data-confirm-delete
+                              th:attr="data-delete-message='Delete work site ' + ${summary.workSite.location} + '?'">
+                            <button type="submit" class="icon-button danger-icon-button" aria-label="Delete site">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M4 7h16"></path>
+                                    <path d="M10 11v6"></path>
+                                    <path d="M14 11v6"></path>
+                                    <path d="M6 7l1 14h10l1-14"></path>
+                                    <path d="M9 7V4h6v3"></path>
+                                </svg>
+                            </button>
+                        </form>
                     </div>
                 </td>
             </tr>

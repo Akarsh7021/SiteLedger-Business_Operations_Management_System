@@ -16,12 +16,18 @@
         </div>
     </div>
     <nav class="top-nav" aria-label="Primary">
-        <a th:href="@{/customers}" class="secondary-button">Customers</a>
-        <a th:href="@{/customers/{id}(id=${workSite.contractor.id})}" class="secondary-button">Customer Info</a>
-        <a th:href="@{/customers/{contractorId}/work-sites/{workSiteId}/invoice/pdf(contractorId=${workSite.contractor.id},workSiteId=${workSite.id})}"
-           class="primary-button">
-            Download PDF
-        </a>
+        <a th:href="@{/dashboard}" class="secondary-button">Dashboard</a>
+        <a th:href="@{/customers}" class="secondary-button active-nav">Customers</a>
+        <a th:href="@{/employees}" class="secondary-button">Employees</a>
+        <a th:href="@{/work-hours}" class="secondary-button">Work Hours</a>
+        <a th:href="@{/site-hours}" class="secondary-button">Site Hours</a>
+        <button type="button" class="theme-toggle" data-theme-toggle aria-label="Toggle dark mode">
+            <span class="theme-toggle-track"><span class="theme-toggle-thumb"></span></span>
+            <span data-theme-label>Light</span>
+        </button>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="secondary-button">Logout</button>
+        </form>
     </nav>
 </header>
 
@@ -57,7 +63,19 @@
                 Price
                 <input type="number" name="price" min="0" step="0.01" required>
             </label>
-            <button type="submit" class="primary-button">+ Add Particular</button>
+            <div class="form-actions">
+                <button type="submit" class="primary-button">+ Add Particular</button>
+                <a th:href="@{/customers/{contractorId}/work-sites/{workSiteId}/invoice/pdf(contractorId=${workSite.contractor.id},workSiteId=${workSite.id})}"
+                   class="icon-button download-icon-button"
+                   aria-label="Download invoice PDF"
+                   title="Download invoice PDF">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 3v12"></path>
+                        <path d="M7 10l5 5 5-5"></path>
+                        <path d="M5 21h14"></path>
+                    </svg>
+                </a>
+            </div>
         </form>
     </section>
 
@@ -99,7 +117,7 @@
                 <td>
                     <div class="invoice-particulars-stack">
                         <div class="invoice-main-particular">
-                            <span th:text="${workSite.serviceType.displayName}">Service</span>
+                            <span th:text="${workSite.serviceTypeDisplayName}">Service</span>
                             <br>
                             <span th:text="'Job Site: ' + ${workSite.location}">Job Site</span>
                         </div>
@@ -107,8 +125,18 @@
                             <span th:text="${item.description}">Particular</span>
                             <form class="invoice-item-delete invoice-screen-nav"
                                   th:action="@{/customers/{contractorId}/work-sites/{workSiteId}/invoice/items/{itemId}/delete(contractorId=${workSite.contractor.id},workSiteId=${workSite.id},itemId=${item.id})}"
-                                  method="post">
-                                <button type="submit" class="danger-button compact-button">Delete</button>
+                                  method="post"
+                                  data-confirm-delete
+                                  th:attr="data-delete-message='Delete invoice item ' + ${item.description} + '?'">
+                                <button type="submit" class="icon-button danger-icon-button compact-button" aria-label="Delete invoice item">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M4 7h16"></path>
+                                        <path d="M10 11v6"></path>
+                                        <path d="M14 11v6"></path>
+                                        <path d="M6 7l1 14h10l1-14"></path>
+                                        <path d="M9 7V4h6v3"></path>
+                                    </svg>
+                                </button>
                             </form>
                         </div>
                     </div>
@@ -162,5 +190,6 @@
         window.addEventListener("load", () => window.print());
     }
 </script>
+<script th:src="@{/js/app.js}"></script>
 </body>
 </html>

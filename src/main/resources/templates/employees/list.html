@@ -16,9 +16,15 @@
         </div>
     </div>
     <nav class="top-nav" aria-label="Primary">
+        <a th:href="@{/dashboard}" class="secondary-button">Dashboard</a>
         <a th:href="@{/customers}" class="secondary-button">Customers</a>
+        <a th:href="@{/employees}" class="secondary-button active-nav">Employees</a>
         <a th:href="@{/work-hours}" class="secondary-button">Work Hours</a>
         <a th:href="@{/site-hours}" class="secondary-button">Site Hours</a>
+        <button type="button" class="theme-toggle" data-theme-toggle aria-label="Toggle dark mode">
+            <span class="theme-toggle-track"><span class="theme-toggle-thumb"></span></span>
+            <span data-theme-label>Light</span>
+        </button>
         <form th:action="@{/logout}" method="post">
             <button type="submit" class="secondary-button">Logout</button>
         </form>
@@ -33,7 +39,10 @@
             <input type="search" name="search" placeholder="Search by name" th:value="${search}">
             <button type="submit" class="secondary-button">Search</button>
         </form>
-        <a th:href="@{/employees/new}" class="primary-button">Add Employee</a>
+        <div class="toolbar-actions">
+            <a th:href="@{/employees/new}" class="primary-button">Add Employee</a>
+            <a th:href="@{/delete-history}" class="secondary-button">Delete History</a>
+        </div>
     </section>
 
     <section class="table-panel">
@@ -61,8 +70,19 @@
                     <div class="table-actions">
                         <a th:href="@{/work-hours/new(employeeId=${employee.id})}" class="secondary-button">Hours</a>
                         <a th:href="@{/employees/{id}/edit(id=${employee.id})}" class="secondary-button">Edit</a>
-                        <form th:action="@{/employees/{id}/delete(id=${employee.id})}" method="post">
-                            <button type="submit" class="danger-button">Delete</button>
+                        <form th:action="@{/employees/{id}/delete(id=${employee.id})}"
+                              method="post"
+                              data-confirm-delete
+                              th:attr="data-delete-message='Delete employee ' + ${employee.fullName} + '?'">
+                            <button type="submit" class="icon-button danger-icon-button" aria-label="Delete employee">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M4 7h16"></path>
+                                    <path d="M10 11v6"></path>
+                                    <path d="M14 11v6"></path>
+                                    <path d="M6 7l1 14h10l1-14"></path>
+                                    <path d="M9 7V4h6v3"></path>
+                                </svg>
+                            </button>
                         </form>
                     </div>
                 </td>
@@ -74,5 +94,6 @@
         </table>
     </section>
 </main>
+<script th:src="@{/js/app.js}"></script>
 </body>
 </html>

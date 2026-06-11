@@ -16,9 +16,15 @@
         </div>
     </div>
     <nav class="top-nav" aria-label="Primary">
-        <a th:href="@{/employees}" class="secondary-button">Employees</a>
+        <a th:href="@{/dashboard}" class="secondary-button">Dashboard</a>
         <a th:href="@{/customers}" class="secondary-button">Customers</a>
+        <a th:href="@{/employees}" class="secondary-button">Employees</a>
+        <a th:href="@{/work-hours}" class="secondary-button active-nav">Work Hours</a>
         <a th:href="@{/site-hours}" class="secondary-button">Site Hours</a>
+        <button type="button" class="theme-toggle" data-theme-toggle aria-label="Toggle dark mode">
+            <span class="theme-toggle-track"><span class="theme-toggle-thumb"></span></span>
+            <span data-theme-label>Light</span>
+        </button>
         <form th:action="@{/logout}" method="post">
             <button type="submit" class="secondary-button">Logout</button>
         </form>
@@ -51,7 +57,10 @@
             </select>
             <button type="submit" class="secondary-button">Filter</button>
         </form>
-        <a th:href="@{/work-hours/new(employeeId=${selectedEmployeeId})}" class="primary-button">Add Work Hours</a>
+        <div class="toolbar-actions">
+            <a th:href="@{/work-hours/new(employeeId=${selectedEmployeeId})}" class="primary-button">Add Work Hours</a>
+            <a th:href="@{/delete-history}" class="secondary-button">Delete History</a>
+        </div>
     </section>
 
     <section class="table-panel">
@@ -101,15 +110,23 @@
                                 th:attr="data-modal-target='payment-modal-' + ${workHour.id}">
                             Pay
                         </button>
-                        <a th:if="${workHour.paymentStatus.name() != 'PAID'}"
-                           th:href="@{/work-hours/{id}/edit(id=${workHour.id})}"
+                        <a th:href="@{/work-hours/{id}/edit(id=${workHour.id})}"
                            class="secondary-button">
                             Edit
                         </a>
-                        <form th:if="${workHour.paymentStatus.name() != 'PAID'}"
-                              th:action="@{/work-hours/{id}/delete(id=${workHour.id})}"
-                              method="post">
-                            <button type="submit" class="danger-button">Delete</button>
+                        <form th:action="@{/work-hours/{id}/delete(id=${workHour.id})}"
+                              method="post"
+                              data-confirm-delete
+                              th:attr="data-delete-message='Delete work hours for ' + ${workHour.employee.fullName} + '?'">
+                            <button type="submit" class="icon-button danger-icon-button" aria-label="Delete work hours">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M4 7h16"></path>
+                                    <path d="M10 11v6"></path>
+                                    <path d="M14 11v6"></path>
+                                    <path d="M6 7l1 14h10l1-14"></path>
+                                    <path d="M9 7V4h6v3"></path>
+                                </svg>
+                            </button>
                         </form>
                     </div>
 
@@ -178,6 +195,10 @@
                                 </label>
                                 <button type="submit" class="primary-button">Save Partial Payment</button>
                             </form>
+
+                            <div class="modal-actions">
+                                <button type="button" class="secondary-button modal-close">Close</button>
+                            </div>
                         </section>
                     </div>
                 </td>
@@ -241,5 +262,6 @@
         });
     });
 </script>
+<script th:src="@{/js/app.js}"></script>
 </body>
 </html>

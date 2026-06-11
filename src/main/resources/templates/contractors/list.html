@@ -16,9 +16,15 @@
         </div>
     </div>
     <nav class="top-nav" aria-label="Primary">
+        <a th:href="@{/dashboard}" class="secondary-button">Dashboard</a>
+        <a th:href="@{/customers}" class="secondary-button active-nav">Customers</a>
         <a th:href="@{/employees}" class="secondary-button">Employees</a>
         <a th:href="@{/work-hours}" class="secondary-button">Work Hours</a>
         <a th:href="@{/site-hours}" class="secondary-button">Site Hours</a>
+        <button type="button" class="theme-toggle" data-theme-toggle aria-label="Toggle dark mode">
+            <span class="theme-toggle-track"><span class="theme-toggle-thumb"></span></span>
+            <span data-theme-label>Light</span>
+        </button>
         <form th:action="@{/logout}" method="post">
             <button type="submit" class="secondary-button">Logout</button>
         </form>
@@ -37,10 +43,11 @@
         <div class="toolbar-actions">
             <button type="button" class="primary-button" data-modal-target="work-site-modal">Add Work Site</button>
             <a th:href="@{/customers/new}" class="primary-button">Add Customer</a>
+            <a th:href="@{/delete-history}" class="secondary-button">Delete History</a>
         </div>
     </section>
 
-    <section class="table-panel">
+    <section class="table-panel customer-table-panel">
         <table class="contractor-table">
             <thead>
             <tr>
@@ -50,7 +57,7 @@
                 <th>Quoted</th>
                 <th>Status</th>
                 <th>Billing Name</th>
-                <th class="actions-column">Actions</th>
+                <th class="actions-column customer-actions-column">Actions</th>
             </tr>
             </thead>
             <tbody>
@@ -67,7 +74,7 @@
                 <td th:text="${row.hasWorkSite() ? #numbers.formatCurrency(row.workSite.quotedAmount) : '-'}">$0.00</td>
                 <td>
                     <span th:if="${row.hasWorkSite()}"
-                          th:classappend="${row.workSite.status.name() == 'COMPLETE'} ? ' status-complete' : ''"
+                          th:classappend="${row.workSite.status.name() == 'COMPLETE'} ? ' status-complete' : ' status-progress'"
                           class="status-pill"
                           th:text="${row.workSite.status.name() == 'COMPLETE' ? 'Complete' : 'In Progress'}">
                         In Progress
@@ -76,7 +83,7 @@
                 </td>
                 <td th:text="${row.contractor.billingName ?: '-'}">Billing</td>
                 <td>
-                    <div class="table-actions">
+                    <div class="customer-action-grid">
                         <a th:href="@{/customers/{id}(id=${row.contractor.id})}" class="secondary-button">View</a>
                         <a th:if="${row.hasWorkSite()}"
                            th:href="@{/customers/{contractorId}/work-sites/{workSiteId}/edit(contractorId=${row.contractor.id},workSiteId=${row.workSite.id})}"
@@ -85,13 +92,39 @@
                         </a>
                         <a th:if="${row.hasWorkSite()}"
                            th:href="@{/customers/{contractorId}/work-sites/{workSiteId}/invoice(contractorId=${row.contractor.id},workSiteId=${row.workSite.id})}"
-                           class="secondary-button">
+                           class="secondary-button invoice-action">
                             View Invoice
                         </a>
+                        <span th:if="${!row.hasWorkSite()}" class="action-placeholder"></span>
+                        <form th:if="${!row.hasWorkSite()}"
+                              th:action="@{/customers/{id}/delete(id=${row.contractor.id})}"
+                              method="post"
+                              data-confirm-delete
+                              th:attr="data-delete-message='Delete customer ' + ${row.contractor.name} + '?'">
+                            <button type="submit" class="icon-button danger-icon-button" aria-label="Delete customer">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M4 7h16"></path>
+                                    <path d="M10 11v6"></path>
+                                    <path d="M14 11v6"></path>
+                                    <path d="M6 7l1 14h10l1-14"></path>
+                                    <path d="M9 7V4h6v3"></path>
+                                </svg>
+                            </button>
+                        </form>
                         <form th:if="${row.hasWorkSite()}"
                               th:action="@{/customers/{contractorId}/work-sites/{workSiteId}/delete(contractorId=${row.contractor.id},workSiteId=${row.workSite.id})}"
-                              method="post">
-                            <button type="submit" class="danger-button">Delete Site</button>
+                              method="post"
+                              data-confirm-delete
+                              th:attr="data-delete-message='Delete work site ' + ${row.workSite.location} + '?'">
+                            <button type="submit" class="icon-button danger-icon-button" aria-label="Delete site">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M4 7h16"></path>
+                                    <path d="M10 11v6"></path>
+                                    <path d="M14 11v6"></path>
+                                    <path d="M6 7l1 14h10l1-14"></path>
+                                    <path d="M9 7V4h6v3"></path>
+                                </svg>
+                            </button>
                         </form>
                     </div>
                 </td>
@@ -116,7 +149,7 @@
             <form th:action="@{/customers/work-sites}" method="post" class="form-stack quote-form">
                 <label>
                     Customer
-                    <select name="contractorId" required>
+                    <select name="contractorId" class="odoo-select" data-quick-type="customers" data-search-more="true" required>
                         <option value="">Select customer</option>
                         <option th:each="contractor : ${contractors}" th:value="${contractor.id}" th:text="${contractor.name}"></option>
                     </select>
@@ -130,10 +163,11 @@
 
                 <label>
                     Type of Service
-                    <select name="serviceType" class="service-type-select" required>
+                    <select name="serviceType" class="service-type-select odoo-select" data-service-select="true" data-search-more="true" required>
+                        <option value="">Select service</option>
                         <option th:each="serviceType : ${serviceTypes}"
-                                th:value="${serviceType}"
-                                th:text="${serviceType.displayName}">
+                                th:value="${serviceType.value}"
+                                th:text="${serviceType.label}">
                             Service
                         </option>
                     </select>
@@ -161,7 +195,10 @@
                     <input type="number" class="quote-gst" readonly>
                 </label>
 
-                <button type="submit" class="primary-button">Save Work Site</button>
+                <div class="form-actions">
+                    <button type="submit" class="primary-button">Save Work Site</button>
+                    <button type="button" class="secondary-button modal-close">Close</button>
+                </div>
             </form>
         </section>
     </div>
