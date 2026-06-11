@@ -58,8 +58,7 @@ CREATE TABLE IF NOT EXISTS contractor_work_sites (
     id INTEGER PRIMARY KEY,
     contractor_id INTEGER NOT NULL,
     location VARCHAR(255) NOT NULL,
-    service_type VARCHAR(40) NOT NULL DEFAULT 'DEEP_FULL_SERVICE_CLEANUP'
-        CHECK (service_type IN ('DEEP_FULL_SERVICE_CLEANUP', 'GENERAL_CLEANUP', 'PRESSURE_WASH', 'HANDOVER_CLEANUP')),
+    service_type VARCHAR(40) NOT NULL DEFAULT 'DEEP_FULL_SERVICE_CLEANUP',
     quoted_amount NUMERIC(10, 2) NOT NULL DEFAULT 0,
     square_area NUMERIC(10, 2) NOT NULL DEFAULT 0,
     unit_of_measurement VARCHAR(20) NOT NULL DEFAULT 'SFT'
@@ -92,3 +91,14 @@ CREATE INDEX IF NOT EXISTS idx_contractor_work_sites_contractor_id
 
 CREATE INDEX IF NOT EXISTS idx_invoice_items_work_site_id
     ON invoice_items(work_site_id);
+
+CREATE TABLE IF NOT EXISTS delete_history (
+    id INTEGER PRIMARY KEY,
+    item_type VARCHAR(80) NOT NULL,
+    item_name VARCHAR(255) NOT NULL,
+    details VARCHAR(1000),
+    deleted_at TIMESTAMP NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_delete_history_deleted_at
+    ON delete_history(deleted_at);
