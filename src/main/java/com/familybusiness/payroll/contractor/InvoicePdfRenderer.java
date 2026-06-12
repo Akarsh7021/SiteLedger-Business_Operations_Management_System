@@ -59,7 +59,7 @@ public class InvoicePdfRenderer {
         text(content, "Price", tableLeft + srWidth + particularsWidth + 15, tableTop - 25, 10, true);
 
         List<String> particulars = new ArrayList<>();
-        particulars.add(workSite.getServiceType().getDisplayName() + "\nJob Site: " + workSite.getLocation());
+        particulars.add(workSite.getServiceTypeDisplayName() + "\nJob Site: " + workSite.getLocation());
         for (InvoiceItem item : workSite.getInvoiceItems()) {
             particulars.add(item.getDescription());
         }
