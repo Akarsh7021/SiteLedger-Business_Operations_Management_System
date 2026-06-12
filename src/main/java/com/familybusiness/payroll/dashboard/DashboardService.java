@@ -235,10 +235,16 @@ public class DashboardService {
     }
 
     private BigDecimal siteTotal(WorkSite site) {
-        return safe(site.getQuotedAmount()).add(site.getGstAmount());
+        if (site == null) {
+            return BigDecimal.ZERO;
+        }
+        return safe(site.getQuotedAmount()).add(safe(site.getGstAmount()));
     }
 
     private BigDecimal paidAmount(WorkHour workHour) {
+        if (workHour == null) {
+            return BigDecimal.ZERO;
+        }
         if (workHour.getPaymentStatus() == PaymentStatus.PAID) {
             return workHour.getTotalPaymentAmount();
         }
