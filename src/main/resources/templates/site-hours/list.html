@@ -35,7 +35,23 @@
     <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
 
     <section class="toolbar">
-        <div></div>
+        <form th:action="@{/site-hours}" method="get" class="search-form site-hours-search-form">
+            <input type="search"
+                   name="search"
+                   placeholder="Search site, customer, or service"
+                   th:value="${search}">
+            <select name="status">
+                <option value="">All statuses</option>
+                <option th:each="siteStatus : ${workSiteStatuses}"
+                        th:value="${siteStatus}"
+                        th:selected="${selectedStatus != null && selectedStatus == siteStatus}"
+                        th:text="${siteStatus.name() == 'COMPLETE' ? 'Complete' : 'In Progress'}">
+                    Status
+                </option>
+            </select>
+            <button type="submit" class="secondary-button">Filter</button>
+            <a th:href="@{/site-hours}" class="secondary-button">Clear</a>
+        </form>
         <div class="toolbar-actions">
             <a th:href="@{/delete-history}" class="secondary-button">Delete History</a>
         </div>

@@ -109,7 +109,7 @@
 
                 <label>
                     Type of Service
-                    <select name="serviceType" class="service-type-select odoo-select" data-service-select="true" data-search-more="true" required>
+                    <select name="serviceType" class="service-type-select odoo-select" data-service-select="true" data-search-more="true" data-preview-limit="5" required>
                         <option value="">Select service</option>
                         <option th:each="serviceType : ${serviceTypes}"
                                 th:value="${serviceType.value}"

@@ -21,9 +21,15 @@ public class SiteHourController {
     }
 
     @GetMapping
-    public String listSiteHours(Model model) {
-        model.addAttribute("siteHours", siteHourService.findSiteHourSummaries());
+    public String listSiteHours(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) WorkSiteStatus status,
+            Model model
+    ) {
+        model.addAttribute("siteHours", siteHourService.findSiteHourSummaries(search, status));
         model.addAttribute("workSiteStatuses", WorkSiteStatus.values());
+        model.addAttribute("search", search);
+        model.addAttribute("selectedStatus", status);
         return "site-hours/list";
     }
 

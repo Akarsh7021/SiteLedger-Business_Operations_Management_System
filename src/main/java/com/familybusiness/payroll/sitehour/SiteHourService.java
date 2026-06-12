@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Service
@@ -28,11 +29,23 @@ public class SiteHourService {
 
     @Transactional(readOnly = true)
     public List<SiteHourSummary> findSiteHourSummaries() {
+        return findSiteHourSummaries(null, null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SiteHourSummary> findSiteHourSummaries(String search, WorkSiteStatus status) {
         List<WorkSite> workSites = workSiteRepository.findAllByOrderByLocationAsc();
         List<WorkHour> workHours = workHourRepository.findAllWithWorkSite();
         List<SiteHourSummary> summaries = new ArrayList<>();
+        String cleanSearch = search == null ? "" : search.trim().toLowerCase(Locale.CANADA);
 
         for (WorkSite workSite : workSites) {
+            if (status != null && workSite.getStatus() != status) {
+                continue;
+            }
+            if (!cleanSearch.isBlank() && !matchesSearch(workSite, cleanSearch)) {
+                continue;
+            }
             BigDecimal accumulatedHours = BigDecimal.ZERO;
             BigDecimal totalSpent = BigDecimal.ZERO;
             Map<String, BigDecimal> employeeHours = new LinkedHashMap<>();
@@ -54,6 +67,17 @@ public class SiteHourService {
         }
 
         return summaries;
+    }
+
+    private boolean matchesSearch(WorkSite workSite, String search) {
+        return contains(workSite.getLocation(), search)
+                || contains(workSite.getServiceTypeDisplayName(), search)
+                || contains(workSite.getContractor().getName(), search)
+                || contains(workSite.getContractor().getBillingName(), search);
+    }
+
+    private boolean contains(String value, String search) {
+        return value != null && value.toLowerCase(Locale.CANADA).contains(search);
     }
 
     public void updateStatus(Long workSiteId, WorkSiteStatus status) {

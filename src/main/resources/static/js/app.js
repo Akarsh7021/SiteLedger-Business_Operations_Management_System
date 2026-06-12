@@ -1,6 +1,10 @@
 const SQUARE_FOOT_RATE = 0.50; // Change this value later if the SFT rate changes.
 const GST_RATE = 0.05;
 const CHART_COLORS = ["#875a7b", "#00a09d", "#f59e0b", "#4776c4", "#ef476f", "#6b7280"];
+const BC_LOCATION_CENTER = {lat: 49.1913, lon: -122.8490}; // Surrey, BC
+const BC_LOCATION_RADIUS_KM = 45;
+const BC_LOCATION_VIEWBOX = "-123.45,49.60,-122.20,48.78";
+let openModalCount = 0;
 
 const applyTheme = (theme) => {
     document.documentElement.dataset.theme = theme;
@@ -24,10 +28,26 @@ const closeModal = (modal) => {
     if (!modal) {
         return;
     }
+    const wasOpen = modal.dataset.dynamic === "true" || !modal.hidden;
     if (modal.dataset.dynamic === "true") {
         modal.remove();
     } else {
         modal.hidden = true;
+    }
+    if (wasOpen) {
+        unlockPageScroll();
+    }
+};
+
+const lockPageScroll = () => {
+    openModalCount += 1;
+    document.body.classList.add("modal-open");
+};
+
+const unlockPageScroll = () => {
+    openModalCount = Math.max(0, openModalCount - 1);
+    if (openModalCount === 0 && !document.querySelector(".modal-backdrop:not([hidden])")) {
+        document.body.classList.remove("modal-open");
     }
 };
 
@@ -98,6 +118,7 @@ document.querySelectorAll("[data-modal-target]").forEach((button) => {
         const modal = document.getElementById(button.dataset.modalTarget);
         prepareModal(modal);
         modal.hidden = false;
+        lockPageScroll();
     });
 });
 
@@ -130,7 +151,7 @@ const ensureDeleteConfirmModal = () => {
     prepareModal(modal);
     modal.addEventListener("click", (event) => {
         if (event.target === modal || event.target.classList.contains("modal-close")) {
-            modal.hidden = true;
+            closeModal(modal);
             modal.pendingForm = null;
         }
     });
@@ -150,6 +171,7 @@ document.querySelectorAll("form[data-confirm-delete]").forEach((form) => {
         modal.querySelector(".delete-confirm-message").textContent =
                 form.dataset.deleteMessage || "Delete this record? This action will be recorded in Delete History.";
         modal.hidden = false;
+        lockPageScroll();
     });
 });
 
@@ -270,10 +292,11 @@ const openCustomerCreateModal = (select, input, initialName = "") => {
         }
         const option = await response.json();
         setEnhancedSelectValue(select, input, {value: option.id, label: option.name});
-        modal.remove();
+        closeModal(modal);
     });
     document.body.appendChild(modal);
     prepareModal(modal);
+    lockPageScroll();
     form.elements.name.focus();
 };
 
@@ -312,10 +335,11 @@ const openServiceCreateModal = (select, input, initialName = "") => {
             return;
         }
         setEnhancedSelectValue(select, input, {value: serviceName, label: serviceName});
-        modal.remove();
+        closeModal(modal);
     });
     document.body.appendChild(modal);
     prepareModal(modal);
+    lockPageScroll();
     form.elements.name.focus();
 };
 
@@ -355,27 +379,27 @@ const openSearchMoreModal = (select, input) => {
                     button.textContent = option.label;
                     button.addEventListener("click", () => {
                         setEnhancedSelectValue(select, input, option);
-                        modal.remove();
+                        closeModal(modal);
                     });
                     list.appendChild(button);
                 });
     };
     modal.addEventListener("click", (event) => {
         if (event.target === modal || event.target.classList.contains("modal-close")) {
-            modal.remove();
+            closeModal(modal);
         }
     });
     modal.querySelector(".odoo-modal-new").addEventListener("click", async () => {
         const name = search.value.trim();
         if (select.dataset.serviceSelect === "true") {
-            modal.remove();
+            closeModal(modal);
             openServiceCreateModal(select, input, name);
         } else if (select.dataset.quickType === "customers") {
-            modal.remove();
+            closeModal(modal);
             openCustomerCreateModal(select, input, name);
         } else if (name) {
             await quickCreate(select, input, name);
-            modal.remove();
+            closeModal(modal);
         } else {
             search.focus();
         }
@@ -383,11 +407,13 @@ const openSearchMoreModal = (select, input) => {
     search.addEventListener("input", render);
     document.body.appendChild(modal);
     prepareModal(modal);
+    lockPageScroll();
     render();
     search.focus();
 };
 
 document.querySelectorAll("select.odoo-select").forEach((select) => {
+    const previewLimit = Number.parseInt(select.dataset.previewLimit || "5", 10);
     const wrapper = document.createElement("div");
     wrapper.className = "odoo-select";
     const input = document.createElement("input");
@@ -407,7 +433,9 @@ document.querySelectorAll("select.odoo-select").forEach((select) => {
     const render = () => {
         const query = input.value.trim();
         const lowerQuery = query.toLowerCase();
-        const options = selectOptions(select).filter((option) => option.label.toLowerCase().includes(lowerQuery)).slice(0, 8);
+        const matchedOptions = selectOptions(select)
+                .filter((option) => option.label.toLowerCase().includes(lowerQuery));
+        const options = matchedOptions.slice(0, query ? 8 : previewLimit);
         menu.innerHTML = "";
         options.forEach((option) => {
             const button = document.createElement("button");
@@ -505,6 +533,70 @@ document.querySelectorAll(".quote-form").forEach((form) => {
     updateQuote();
 });
 
+const distanceKm = (first, second) => {
+    const earthRadiusKm = 6371;
+    const toRadians = (value) => value * Math.PI / 180;
+    const latDelta = toRadians(second.lat - first.lat);
+    const lonDelta = toRadians(second.lon - first.lon);
+    const firstLat = toRadians(first.lat);
+    const secondLat = toRadians(second.lat);
+    const a = Math.sin(latDelta / 2) ** 2
+            + Math.cos(firstLat) * Math.cos(secondLat) * Math.sin(lonDelta / 2) ** 2;
+    return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
+const renderLocationOptions = (input, results, locations, source = "") => {
+    results.innerHTML = "";
+    locations.forEach((location) => {
+        const label = typeof location === "string" ? location : location.display_name;
+        const option = document.createElement("button");
+        option.type = "button";
+        option.className = "location-result";
+        option.textContent = label;
+        option.addEventListener("click", () => {
+            input.value = label;
+            results.innerHTML = "";
+        });
+        results.appendChild(option);
+    });
+    if (source === "google" && locations.length) {
+        const poweredBy = document.createElement("div");
+        poweredBy.className = "location-attribution";
+        poweredBy.textContent = "Powered by Google";
+        results.appendChild(poweredBy);
+    }
+};
+
+const searchGoogleLocations = async (query) => {
+    const response = await fetch(`/api/locations/search?query=${encodeURIComponent(query)}`);
+    if (!response.ok) {
+        return {source: "fallback", locations: []};
+    }
+    return response.json();
+};
+
+const searchOpenStreetMapLocations = async (query) => {
+    const params = new URLSearchParams({
+        format: "json",
+        limit: "8",
+        countrycodes: "ca",
+        bounded: "1",
+        viewbox: BC_LOCATION_VIEWBOX,
+        addressdetails: "1",
+        q: `${query}, British Columbia, Canada`
+    });
+    const response = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`);
+    return (await response.json()).filter((location) => {
+        const point = {
+            lat: Number.parseFloat(location.lat),
+            lon: Number.parseFloat(location.lon)
+        };
+        return Number.isFinite(point.lat)
+                && Number.isFinite(point.lon)
+                && distanceKm(BC_LOCATION_CENTER, point) <= BC_LOCATION_RADIUS_KM;
+    }).slice(0, 8);
+};
+
 document.querySelectorAll(".location-search").forEach((input) => {
     const results = input.closest("label").querySelector(".location-results");
     let timeoutId;
@@ -521,20 +613,12 @@ document.querySelectorAll(".location-search").forEach((input) => {
 
         timeoutId = setTimeout(async () => {
             try {
-                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=5&q=${encodeURIComponent(query)}`);
-                const locations = await response.json();
-                results.innerHTML = "";
-                locations.forEach((location) => {
-                    const option = document.createElement("button");
-                    option.type = "button";
-                    option.className = "location-result";
-                    option.textContent = location.display_name;
-                    option.addEventListener("click", () => {
-                        input.value = location.display_name;
-                        results.innerHTML = "";
-                    });
-                    results.appendChild(option);
-                });
+                const googleResult = await searchGoogleLocations(query);
+                if (googleResult.locations.length) {
+                    renderLocationOptions(input, results, googleResult.locations, googleResult.source);
+                    return;
+                }
+                renderLocationOptions(input, results, await searchOpenStreetMapLocations(query));
             } catch {
                 results.innerHTML = "";
             }

@@ -37,6 +37,22 @@ spring.datasource.url=jdbc:sqlite:employee-payroll.db
 
 The database file is ignored by Git because it contains local business data. A fresh database is created from `src/main/resources/schema.sql` when the app starts.
 
+## Google Location Search
+
+Work-site location search can use Google Places Autocomplete for more accurate local address suggestions. Enable Places API (New) in Google Cloud, then set:
+
+```bash
+export GOOGLE_MAPS_API_KEY=your_api_key_here
+```
+
+On Windows PowerShell:
+
+```powershell
+$env:GOOGLE_MAPS_API_KEY="your_api_key_here"
+```
+
+If no key is set, the app falls back to OpenStreetMap search.
+
 ## Login
 
 Default development login:
@@ -80,6 +96,35 @@ From PowerShell on Windows:
 ```powershell
 .\mvnw.cmd spring-boot:run
 ```
+
+## Package For Local Use
+
+To create a portable Windows app folder that can be copied to another laptop:
+
+```powershell
+.\scripts\package-portable-windows.ps1
+```
+
+The output is created at:
+
+```text
+dist\SiteLedger
+```
+
+Give the whole `SiteLedger` folder to the user. They can run:
+
+```text
+Start SiteLedger.bat
+```
+
+On macOS or Linux, create the same portable folder with:
+
+```bash
+chmod +x scripts/package-portable-unix.sh
+./scripts/package-portable-unix.sh
+```
+
+The app data is stored in `employee-payroll.db` inside the portable folder.
 
 ## Next Phases
 

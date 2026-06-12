@@ -149,7 +149,7 @@
             <form th:action="@{/customers/work-sites}" method="post" class="form-stack quote-form">
                 <label>
                     Customer
-                    <select name="contractorId" class="odoo-select" data-quick-type="customers" data-search-more="true" required>
+                    <select name="contractorId" class="odoo-select" data-quick-type="customers" data-search-more="true" data-preview-limit="5" required>
                         <option value="">Select customer</option>
                         <option th:each="contractor : ${contractors}" th:value="${contractor.id}" th:text="${contractor.name}"></option>
                     </select>
@@ -163,7 +163,7 @@
 
                 <label>
                     Type of Service
-                    <select name="serviceType" class="service-type-select odoo-select" data-service-select="true" data-search-more="true" required>
+                    <select name="serviceType" class="service-type-select odoo-select" data-service-select="true" data-search-more="true" data-preview-limit="5" required>
                         <option value="">Select service</option>
                         <option th:each="serviceType : ${serviceTypes}"
                                 th:value="${serviceType.value}"

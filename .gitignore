@@ -13,6 +13,7 @@ data/
 ### Maven ###
 target/
 .m2/
+dist/
 
 ### Eclipse ###
 .apt_generated

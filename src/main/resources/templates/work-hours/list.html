@@ -106,7 +106,7 @@
                     <div class="table-actions">
                         <button th:if="${workHour.paymentStatus.name() != 'PAID'}"
                                 type="button"
-                                class="danger-button"
+                                class="pay-button"
                                 th:attr="data-modal-target='payment-modal-' + ${workHour.id}">
                             Pay
                         </button>
