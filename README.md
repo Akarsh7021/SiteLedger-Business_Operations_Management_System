@@ -50,6 +50,12 @@ Change `app.security.admin-password` in `src/main/resources/application.properti
 
 ## Run
 
+Install Java 17 or newer. On macOS, a simple option is:
+
+```bash
+brew install openjdk@17
+```
+
 From IntelliJ, import the project as a Maven project and run:
 
 ```text
@@ -60,6 +66,19 @@ The app opens at:
 
 ```text
 http://127.0.0.1:8081
+```
+
+From a terminal on macOS or Linux:
+
+```bash
+chmod +x mvnw
+./mvnw spring-boot:run
+```
+
+From PowerShell on Windows:
+
+```powershell
+.\mvnw.cmd spring-boot:run
 ```
 
 ## Next Phases

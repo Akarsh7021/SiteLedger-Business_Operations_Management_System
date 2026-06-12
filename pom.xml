@@ -12,13 +12,13 @@
     </parent>
 
     <groupId>com.familybusiness</groupId>
-    <artifactId>employee-tracking-payment-management</artifactId>
+    <artifactId>siteledger-business-operations-management-system</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Employee Tracking and Payment Management</name>
-    <description>Local desktop employee tracking and payroll management system</description>
+    <name>SiteLedger Business Operations Management System</name>
+    <description>Local desktop business operations, site tracking, and payroll management system</description>
 
     <properties>
-        <java.version>23</java.version>
+        <java.version>17</java.version>
     </properties>
 
     <dependencies>
