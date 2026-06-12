@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Delete History</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<header class="top-bar">
+    <div class="brand-heading">
+        <img th:src="@{/images/nh-hygiene-logo.png}" alt="NH Hygiene Services Ltd." class="brand-logo">
+        <div>
+            <p class="eyebrow">Audit</p>
+            <h1>Delete History</h1>
+        </div>
+    </div>
+    <nav class="top-nav" aria-label="Primary">
+        <a th:href="@{/dashboard}" class="secondary-button">Dashboard</a>
+        <a th:href="@{/customers}" class="secondary-button">Customers</a>
+        <a th:href="@{/employees}" class="secondary-button">Employees</a>
+        <a th:href="@{/work-hours}" class="secondary-button">Work Hours</a>
+        <a th:href="@{/site-hours}" class="secondary-button">Site Hours</a>
+        <button type="button" class="theme-toggle" data-theme-toggle aria-label="Toggle dark mode">
+            <span class="theme-toggle-track"><span class="theme-toggle-thumb"></span></span>
+            <span data-theme-label>Light</span>
+        </button>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="secondary-button">Logout</button>
+        </form>
+    </nav>
+</header>
+
+<main class="page">
+    <section class="table-panel">
+        <table class="fluid-table">
+            <thead>
+            <tr>
+                <th>Deleted At</th>
+                <th>Type</th>
+                <th>Name</th>
+                <th>Details</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item : ${deleteHistory}">
+                <td th:text="${#temporals.format(item.deletedAt, 'MMM d, yyyy h:mm a')}">Jan 1, 2026</td>
+                <td th:text="${item.itemType}">Type</td>
+                <td th:text="${item.itemName}">Name</td>
+                <td th:text="${item.details ?: '-'}">Details</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(deleteHistory)}">
+                <td colspan="4" class="empty-state">Nothing has been deleted yet.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

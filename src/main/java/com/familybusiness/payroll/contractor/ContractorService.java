@@ -1,5 +1,6 @@
 package com.familybusiness.payroll.contractor;
 
+import com.familybusiness.payroll.deletehistory.DeleteHistoryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,15 +22,18 @@ public class ContractorService {
     private final ContractorRepository contractorRepository;
     private final WorkSiteRepository workSiteRepository;
     private final InvoiceItemRepository invoiceItemRepository;
+    private final DeleteHistoryService deleteHistoryService;
 
     public ContractorService(
             ContractorRepository contractorRepository,
             WorkSiteRepository workSiteRepository,
-            InvoiceItemRepository invoiceItemRepository
+            InvoiceItemRepository invoiceItemRepository,
+            DeleteHistoryService deleteHistoryService
     ) {
         this.contractorRepository = contractorRepository;
         this.workSiteRepository = workSiteRepository;
         this.invoiceItemRepository = invoiceItemRepository;
+        this.deleteHistoryService = deleteHistoryService;
     }
 
     @Transactional(readOnly = true)
@@ -70,9 +74,34 @@ public class ContractorService {
                 .orElseThrow(() -> new WorkSiteNotFoundException(id));
     }
 
+    @Transactional(readOnly = true)
+    public List<ServiceTypeOption> findServiceTypeOptions() {
+        List<ServiceTypeOption> options = new ArrayList<>();
+        for (ServiceType serviceType : ServiceType.values()) {
+            options.add(new ServiceTypeOption(serviceType.name(), serviceType.getDisplayName()));
+        }
+        for (String serviceType : workSiteRepository.findDistinctServiceTypes()) {
+            boolean alreadyIncluded = options.stream()
+                    .anyMatch(option -> option.getValue().equalsIgnoreCase(serviceType));
+            if (!alreadyIncluded) {
+                options.add(new ServiceTypeOption(serviceType, ServiceType.displayNameFor(serviceType)));
+            }
+        }
+        return options;
+    }
+
     public Contractor createContractor(ContractorForm form) {
         Contractor contractor = new Contractor();
         copyFormToContractor(form, contractor);
+        return contractorRepository.save(contractor);
+    }
+
+    public Contractor createDefaultContractor(String name) {
+        Contractor contractor = new Contractor();
+        contractor.setName(requireName(name));
+        contractor.setCustomerType(CustomerType.BUILDER);
+        contractor.setAmountPaidToDate(BigDecimal.ZERO);
+        contractor.setAmountUnpaid(BigDecimal.ZERO);
         return contractorRepository.save(contractor);
     }
 
@@ -83,10 +112,13 @@ public class ContractorService {
     }
 
     public void deleteContractor(Long id) {
-        if (!contractorRepository.existsById(id)) {
-            throw new ContractorNotFoundException(id);
-        }
-        contractorRepository.deleteById(id);
+        Contractor contractor = getContractor(id);
+        deleteHistoryService.record(
+                "Customer",
+                contractor.getName(),
+                "Customer type: " + contractor.getCustomerType() + ", work sites: " + contractor.getWorkSites().size()
+        );
+        contractorRepository.delete(contractor);
     }
 
     public WorkSite createWorkSite(Long contractorId, WorkSiteForm form) {
@@ -94,6 +126,22 @@ public class ContractorService {
         WorkSite workSite = new WorkSite();
         workSite.setContractor(contractor);
         copyFormToWorkSite(form, workSite);
+        return workSiteRepository.save(workSite);
+    }
+
+    public WorkSite createDefaultWorkSite(Long contractorId, String location) {
+        Contractor contractor = contractorId == null
+                ? createDefaultContractor("Quick Work Sites")
+                : getContractor(contractorId);
+        WorkSite workSite = new WorkSite();
+        workSite.setContractor(contractor);
+        workSite.setLocation(requireName(location));
+        workSite.setServiceType(ServiceType.GENERAL_CLEANUP.name());
+        workSite.setSquareArea(BigDecimal.ZERO);
+        workSite.setUnitOfMeasurement(UnitOfMeasurement.LSM);
+        workSite.setQuotedAmount(BigDecimal.ZERO);
+        workSite.setGstAmount(BigDecimal.ZERO);
+        workSite.setStatus(WorkSiteStatus.IN_PROGRESS);
         return workSiteRepository.save(workSite);
     }
 
@@ -111,6 +159,13 @@ public class ContractorService {
         if (!workSite.getContractor().getId().equals(contractorId)) {
             throw new WorkSiteNotFoundException(workSiteId);
         }
+        deleteHistoryService.record(
+                "Work Site",
+                workSite.getLocation(),
+                "Customer: " + workSite.getContractor().getName()
+                        + ", status: " + workSite.getStatus()
+                        + ", quoted: " + workSite.getQuotedAmount()
+        );
         workSiteRepository.delete(workSite);
     }
 
@@ -149,6 +204,11 @@ public class ContractorService {
     }
 
     public void deleteInvoiceItem(Long itemId) {
+        invoiceItemRepository.findById(itemId).ifPresent(item -> deleteHistoryService.record(
+                "Invoice Item",
+                item.getDescription(),
+                "Work site: " + item.getWorkSite().getLocation() + ", price: " + item.getPrice()
+        ));
         invoiceItemRepository.deleteById(itemId);
     }
 
@@ -181,7 +241,7 @@ public class ContractorService {
 
     private void copyFormToWorkSite(WorkSiteForm form, WorkSite workSite) {
         workSite.setLocation(form.getLocation().trim());
-        workSite.setServiceType(form.getServiceType());
+        workSite.setServiceType(form.getServiceType().trim());
         workSite.setSquareArea(form.getSquareArea());
         workSite.setUnitOfMeasurement(form.getUnitOfMeasurement());
         workSite.setQuotedAmount(resolveQuotedAmount(form));
@@ -191,7 +251,7 @@ public class ContractorService {
 
     private BigDecimal resolveQuotedAmount(WorkSiteForm form) {
         BigDecimal squareArea = form.getSquareArea() == null ? BigDecimal.ZERO : form.getSquareArea();
-        if (form.getServiceType() == ServiceType.DEEP_FULL_SERVICE_CLEANUP
+        if (ServiceType.isDeepFullServiceCleanup(form.getServiceType())
                 && form.getUnitOfMeasurement() == UnitOfMeasurement.SFT) {
             return squareArea.multiply(SQUARE_FOOT_RATE).setScale(2, RoundingMode.HALF_UP);
         }
@@ -223,5 +283,30 @@ public class ContractorService {
             return null;
         }
         return value.trim();
+    }
+
+    private String requireName(String value) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("Name is required.");
+        }
+        return value.trim();
+    }
+
+    public static class ServiceTypeOption {
+        private final String value;
+        private final String label;
+
+        public ServiceTypeOption(String value, String label) {
+            this.value = value;
+            this.label = label;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public String getLabel() {
+            return label;
+        }
     }
 }

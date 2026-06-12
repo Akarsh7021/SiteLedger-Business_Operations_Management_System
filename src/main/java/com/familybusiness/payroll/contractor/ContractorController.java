@@ -280,6 +280,6 @@ public class ContractorController {
     private void addWorkSiteOptions(Model model) {
         model.addAttribute("unitsOfMeasurement", UnitOfMeasurement.values());
         model.addAttribute("workSiteStatuses", WorkSiteStatus.values());
-        model.addAttribute("serviceTypes", ServiceType.values());
+        model.addAttribute("serviceTypes", contractorService.findServiceTypeOptions());
     }
 }

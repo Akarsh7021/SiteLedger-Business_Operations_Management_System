@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Business Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<header class="top-bar">
+    <div class="brand-heading">
+        <img th:src="@{/images/nh-hygiene-logo.png}" alt="NH Hygiene Services Ltd." class="brand-logo">
+        <div>
+            <p class="eyebrow">Business Overview</p>
+            <h1>Dashboard</h1>
+        </div>
+    </div>
+    <nav class="top-nav" aria-label="Primary">
+        <a th:href="@{/dashboard}" class="secondary-button active-nav">Dashboard</a>
+        <a th:href="@{/customers}" class="secondary-button">Customers</a>
+        <a th:href="@{/employees}" class="secondary-button">Employees</a>
+        <a th:href="@{/work-hours}" class="secondary-button">Work Hours</a>
+        <a th:href="@{/site-hours}" class="secondary-button">Site Hours</a>
+        <button type="button" class="theme-toggle" data-theme-toggle aria-label="Toggle dark mode">
+            <span class="theme-toggle-track"><span class="theme-toggle-thumb"></span></span>
+            <span data-theme-label>Light</span>
+        </button>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="secondary-button">Logout</button>
+        </form>
+    </nav>
+</header>
+
+<main class="page dashboard-page">
+    <section class="dashboard-hero">
+        <div>
+            <p class="eyebrow">NH Hygiene Services Ltd.</p>
+            <h2>Today&apos;s business health at a glance</h2>
+        </div>
+        <div class="dashboard-hero-actions">
+            <a th:href="@{/customers}" class="primary-button">Manage Jobs</a>
+            <a th:href="@{/work-hours}" class="secondary-button">Review Payroll</a>
+        </div>
+    </section>
+
+    <section class="metric-grid" aria-label="Business metrics">
+        <article th:each="metric : ${dashboard.metrics}"
+                 th:class="${'metric-card metric-' + metric.tone()}">
+            <span th:text="${metric.label()}">Metric</span>
+            <strong th:text="${metric.value()}">$0.00</strong>
+            <p th:text="${metric.helper()}">Summary</p>
+        </article>
+    </section>
+
+    <section class="dashboard-grid">
+        <article class="chart-panel chart-panel-wide">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Revenue vs Cost</p>
+                    <h2>Monthly Profit Trend</h2>
+                </div>
+            </div>
+            <div class="chart-shell">
+                <canvas id="profitTrendChart"
+                        class="dashboard-chart trend-chart"
+                        height="250"
+                        th:attr="data-labels=${dashboard.monthlyTrends.![label()]},
+                                 data-revenue=${dashboard.monthlyTrends.![revenue()]},
+                                 data-payroll=${dashboard.monthlyTrends.![payroll()]},
+                                 data-profit=${dashboard.monthlyTrends.![profit()]}"></canvas>
+            </div>
+        </article>
+
+        <article class="chart-panel">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Work Mix</p>
+                    <h2>Service Revenue</h2>
+                </div>
+            </div>
+            <div class="chart-shell">
+                <canvas id="serviceMixChart"
+                        class="dashboard-chart pie-chart"
+                        height="260"
+                        data-chart-type="pie"
+                        data-value-label="Revenue"
+                        th:attr="data-labels=${dashboard.serviceMix.![label()]},
+                                 data-values=${dashboard.serviceMix.![value()]}"></canvas>
+            </div>
+        </article>
+
+        <article class="chart-panel">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Jobs</p>
+                    <h2>Site Status</h2>
+                </div>
+            </div>
+            <div class="chart-shell">
+                <canvas id="jobStatusChart"
+                        class="dashboard-chart pie-chart"
+                        height="260"
+                        data-chart-type="pie"
+                        data-value-label="Jobs"
+                        th:attr="data-labels=${dashboard.jobStatusMix.![label()]},
+                                 data-values=${dashboard.jobStatusMix.![value()]}"></canvas>
+            </div>
+        </article>
+
+        <article class="chart-panel">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Payroll</p>
+                    <h2>Payment Split</h2>
+                </div>
+            </div>
+            <div class="chart-shell">
+                <canvas id="payrollStatusChart"
+                        class="dashboard-chart pie-chart"
+                        height="260"
+                        data-chart-type="pie"
+                        data-value-label="Payroll"
+                        th:attr="data-labels=${dashboard.payrollStatusMix.![label()]},
+                                 data-values=${dashboard.payrollStatusMix.![value()]}"></canvas>
+            </div>
+        </article>
+    </section>
+
+    <section class="insight-grid">
+        <article class="table-panel insight-panel">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Customers</p>
+                    <h2>Top Quoted Customers</h2>
+                </div>
+            </div>
+            <div class="insight-list">
+                <a th:each="row : ${dashboard.topCustomers}" th:href="${row.href()}" class="insight-row">
+                    <div>
+                        <strong th:text="${row.name()}">Customer</strong>
+                        <span th:text="${row.detail()}">Detail</span>
+                    </div>
+                    <b th:text="${#numbers.formatCurrency(row.amount())}">$0.00</b>
+                </a>
+                <p th:if="${#lists.isEmpty(dashboard.topCustomers)}" class="empty-state">No customer revenue yet.</p>
+            </div>
+        </article>
+
+        <article class="table-panel insight-panel">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Action Needed</p>
+                    <h2>Unpaid Payroll</h2>
+                </div>
+            </div>
+            <div class="insight-list">
+                <a th:each="row : ${dashboard.unpaidPayroll}" th:href="${row.href()}" class="insight-row">
+                    <div>
+                        <strong th:text="${row.name()}">Employee</strong>
+                        <span th:text="${row.detail()}">Detail</span>
+                    </div>
+                    <b th:text="${#numbers.formatCurrency(row.amount())}">$0.00</b>
+                </a>
+                <p th:if="${#lists.isEmpty(dashboard.unpaidPayroll)}" class="empty-state">All recorded payroll is paid.</p>
+            </div>
+        </article>
+
+        <article class="table-panel insight-panel">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Operations</p>
+                    <h2>Open Work Sites</h2>
+                </div>
+            </div>
+            <div class="insight-list">
+                <a th:each="row : ${dashboard.activeJobs}" th:href="${row.href()}" class="insight-row">
+                    <div>
+                        <strong th:text="${row.name()}">Location</strong>
+                        <span th:text="${row.detail()}">Customer</span>
+                    </div>
+                    <b th:text="${#numbers.formatCurrency(row.amount())}">$0.00</b>
+                </a>
+                <p th:if="${#lists.isEmpty(dashboard.activeJobs)}" class="empty-state">No open work sites.</p>
+            </div>
+        </article>
+    </section>
+</main>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>
