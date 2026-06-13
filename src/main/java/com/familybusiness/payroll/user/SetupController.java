@@ -54,4 +54,39 @@ public class SetupController {
         redirectAttributes.addAttribute("registered", "true");
         return "redirect:/login";
     }
+
+    @GetMapping("/forgot-password")
+    public String forgotPassword(Model model) {
+        if (!appUserService.hasAnyUser()) {
+            return "redirect:/register";
+        }
+        if (!model.containsAttribute("passwordResetForm")) {
+            model.addAttribute("passwordResetForm", new PasswordResetForm());
+        }
+        return "forgot-password";
+    }
+
+    @PostMapping("/forgot-password")
+    public String resetPassword(
+            @Valid @ModelAttribute PasswordResetForm passwordResetForm,
+            BindingResult bindingResult,
+            RedirectAttributes redirectAttributes
+    ) {
+        if (!appUserService.hasAnyUser()) {
+            return "redirect:/register";
+        }
+        if (!Objects.equals(passwordResetForm.getPassword(), passwordResetForm.getConfirmPassword())) {
+            bindingResult.rejectValue("confirmPassword", "password.mismatch", "Passwords do not match");
+        }
+        if (!bindingResult.hasFieldErrors("username") && !appUserService.usernameExists(passwordResetForm.getUsername())) {
+            bindingResult.rejectValue("username", "username.missing", "No account found with this username");
+        }
+        if (bindingResult.hasErrors()) {
+            return "forgot-password";
+        }
+
+        appUserService.resetPassword(passwordResetForm);
+        redirectAttributes.addAttribute("reset", "true");
+        return "redirect:/login";
+    }
 }

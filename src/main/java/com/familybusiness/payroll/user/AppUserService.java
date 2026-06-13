@@ -26,6 +26,14 @@ public class AppUserService {
     }
 
     @Transactional
+    public void resetPassword(PasswordResetForm passwordResetForm) {
+        AppUser appUser = appUserRepository.findByUsername(passwordResetForm.getUsername().trim())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        appUser.setPasswordHash(passwordEncoder.encode(passwordResetForm.getPassword()));
+        appUserRepository.save(appUser);
+    }
+
+    @Transactional
     public void createFirstUser(SetupForm setupForm) {
         AppUser appUser = new AppUser();
         appUser.setUsername(setupForm.getUsername().trim());

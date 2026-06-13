@@ -1253,6 +1253,19 @@ tr:last-child td {
     gap: 16px;
 }
 
+.auth-link {
+    color: var(--primary-dark);
+    font-size: 14px;
+    font-weight: 700;
+    justify-self: center;
+    text-decoration: none;
+}
+
+.auth-link:hover {
+    color: var(--primary);
+    text-decoration: underline;
+}
+
 .dashboard-hero {
     align-items: center;
     background: linear-gradient(135deg, var(--panel), var(--primary-soft));

@@ -14,6 +14,7 @@
         <div th:if="${param.error}" class="alert alert-error">Invalid username or password.</div>
         <div th:if="${param.logout}" class="alert alert-success">You have been logged out.</div>
         <div th:if="${param.registered}" class="alert alert-success">Account created. Sign in to continue.</div>
+        <div th:if="${param.reset}" class="alert alert-success">Password updated. Sign in with the new password.</div>
 
         <label>
             Username
@@ -26,6 +27,7 @@
         </label>
 
         <button type="submit" class="primary-button">Sign in</button>
+        <a class="auth-link" th:href="@{/forgot-password}">Forgot password?</a>
     </form>
 </main>
 </body>

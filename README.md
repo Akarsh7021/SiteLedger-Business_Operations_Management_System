@@ -59,6 +59,8 @@ On first launch, the app opens a setup page where you create the local username 
 
 The password is stored in the local SQLite database as a BCrypt hash, not as plain text.
 
+If the password is forgotten, use the **Forgot password?** link on the sign-in page and enter the account username to set a new password.
+
 ## Run
 
 Install Java 17 or newer. On macOS, a simple option is:
