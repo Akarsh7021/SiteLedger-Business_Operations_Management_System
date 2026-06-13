@@ -7,7 +7,7 @@ Local desktop-style Spring Boot application for managing employees and payroll r
 This first phase sets up the foundation:
 
 - Spring Boot application structure
-- Form-based admin login with BCrypt password encoding
+- Form-based local login with BCrypt password encoding
 - Local-only server binding on `127.0.0.1`
 - SQLite database storage
 - Employee create, read, update, delete, and search
@@ -55,14 +55,9 @@ If no key is set, the app falls back to OpenStreetMap search.
 
 ## Login
 
-Default development login:
+On first launch, the app opens a setup page where you create the local username and password. After that, use the sign-in page normally.
 
-```text
-Username: admin
-Password: change-me-now
-```
-
-Change `app.security.admin-password` in `src/main/resources/application.properties` before storing real employee information. Environment variables can also override Spring properties later when packaging the desktop app.
+The password is stored in the local SQLite database as a BCrypt hash, not as plain text.
 
 ## Run
 
@@ -128,8 +123,7 @@ The app data is stored in `employee-payroll.db` inside the portable folder.
 
 ## Next Phases
 
-1. Move admin credentials into the database with a setup screen.
-2. Add payroll period calculation.
-3. Move payment records into a full payment history table.
-4. Add weekly/monthly reports.
-5. Package as a desktop application.
+1. Add payroll period calculation.
+2. Move payment records into a full payment history table.
+3. Add weekly/monthly reports.
+4. Package as a desktop application.

@@ -9,6 +9,16 @@ CREATE TABLE IF NOT EXISTS employees (
         CHECK (employment_status IN ('ACTIVE', 'INACTIVE'))
 );
 
+CREATE TABLE IF NOT EXISTS app_users (
+    id INTEGER PRIMARY KEY,
+    username VARCHAR(80) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_app_users_username
+    ON app_users(username);
+
 CREATE TABLE IF NOT EXISTS work_hours (
     id INTEGER PRIMARY KEY,
     employee_id INTEGER NOT NULL,

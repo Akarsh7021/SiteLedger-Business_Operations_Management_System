@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Create Account</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body class="auth-page">
+<main class="auth-panel">
+    <img th:src="@{/images/nh-hygiene-logo.png}" alt="NH Hygiene Services Ltd." class="auth-logo">
+    <h1>Create Account</h1>
+    <form th:action="@{/register}" th:object="${setupForm}" method="post" class="form-stack">
+        <div class="alert alert-success">
+            Set the username and password for this computer.
+        </div>
+
+        <label>
+            Username
+            <input type="text" th:field="*{username}" autocomplete="username" required autofocus>
+            <span class="field-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></span>
+        </label>
+
+        <label>
+            Password
+            <input type="password" th:field="*{password}" autocomplete="new-password" required>
+            <span class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span>
+        </label>
+
+        <label>
+            Confirm Password
+            <input type="password" th:field="*{confirmPassword}" autocomplete="new-password" required>
+            <span class="field-error" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></span>
+        </label>
+
+        <button type="submit" class="primary-button">Create account</button>
+    </form>
+</main>
+</body>
+</html>

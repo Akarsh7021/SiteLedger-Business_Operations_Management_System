@@ -11,7 +11,20 @@ if (!(Test-Path ".\mvnw.cmd")) {
     throw "Maven wrapper not found. Expected .\mvnw.cmd in $root"
 }
 
+if ([string]::IsNullOrWhiteSpace($env:JAVA_HOME)) {
+    throw "JAVA_HOME is not set. Install JDK 17 or newer, then set JAVA_HOME to the JDK folder."
+}
+
+if (!(Test-Path (Join-Path $env:JAVA_HOME "bin\java.exe"))) {
+    throw "JAVA_HOME does not point to a valid JDK/JRE folder: $env:JAVA_HOME"
+}
+
+Remove-Item -Recurse -Force -ErrorAction SilentlyContinue (Join-Path $root "target")
+
 .\mvnw.cmd clean package -DskipTests
+if ($LASTEXITCODE -ne 0) {
+    throw "Maven build failed. Fix the build error above before packaging."
+}
 
 $jar = Get-ChildItem -Path (Join-Path $root "target") -Filter "*.jar" |
     Where-Object { $_.Name -notlike "*.original" } |
@@ -42,6 +55,14 @@ if errorlevel 1 (
   exit /b 1
 )
 
+java -version 2>&1 | findstr /r /c:"version \"1\\." >nul
+if not errorlevel 1 (
+  echo Java 17 or newer is required. This laptop appears to have old Java.
+  echo Download: https://adoptium.net/temurin/releases/?version=17
+  pause
+  exit /b 1
+)
+
 start "" "http://127.0.0.1:8081"
 java -jar SiteLedger.jar
 pause
@@ -58,12 +79,11 @@ Requirements:
 - Java 17 or newer must be installed.
 - Data is stored locally in employee-payroll.db in this same folder.
 
-Default login:
-- Username: admin
-- Password: change-me-now
+First launch:
+- Create the username and password on the setup page.
+- After setup, sign in with that account.
 
 Important:
-- Change the admin password before real use.
 - Keep this whole folder together. Do not delete employee-payroll.db unless you want to remove the local data.
 '@ | Set-Content -Encoding ASCII -Path (Join-Path $appDir "README-FIRST.txt")
 

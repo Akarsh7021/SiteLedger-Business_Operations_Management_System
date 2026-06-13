@@ -13,6 +13,7 @@
     <form th:action="@{/login}" method="post" class="form-stack">
         <div th:if="${param.error}" class="alert alert-error">Invalid username or password.</div>
         <div th:if="${param.logout}" class="alert alert-success">You have been logged out.</div>
+        <div th:if="${param.registered}" class="alert alert-success">Account created. Sign in to continue.</div>
 
         <label>
             Username
