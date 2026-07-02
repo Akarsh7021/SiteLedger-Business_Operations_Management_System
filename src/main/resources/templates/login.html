@@ -9,7 +9,7 @@
 <body class="auth-page">
 <main class="auth-panel">
     <img th:src="@{/images/nh-hygiene-logo.png}" alt="NH Hygiene Services Ltd." class="auth-logo">
-    <h1>Employee Payroll</h1>
+    <h1>Welcome to SiteLedger</h1>
     <form th:action="@{/login}" method="post" class="form-stack">
         <div th:if="${param.error}" class="alert alert-error">Invalid username or password.</div>
         <div th:if="${param.logout}" class="alert alert-success">You have been logged out.</div>
