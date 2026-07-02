@@ -72,7 +72,10 @@
     <section class="detail-section">
         <div class="section-heading">
             <h2>Work Sites</h2>
-            <button type="button" class="primary-button" data-modal-target="work-site-modal">Add Work Site</button>
+            <div class="form-actions">
+                <a th:href="@{/customers/{id}/edit(id=${contractor.id})}" class="secondary-button">Edit Customer</a>
+                <button type="button" class="primary-button" data-modal-target="work-site-modal">Add Work Site</button>
+            </div>
         </div>
 
         <div class="site-card-grid" th:if="${!#lists.isEmpty(contractor.workSites)}">

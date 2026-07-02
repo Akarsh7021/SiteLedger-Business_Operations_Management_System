@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="'Invoice ' + ${workSite.invoiceNumber}">Invoice</title>
+    <title th:text="${workSite.invoiceNumber == null} ? 'Draft Invoice' : 'Invoice ' + ${workSite.invoiceNumber}">Invoice</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body th:classappend="${printMode} ? ' print-mode' : ''">
@@ -12,7 +12,7 @@
         <img th:src="@{/images/nh-hygiene-logo.png}" alt="NH Hygiene Services Ltd." class="brand-logo">
         <div>
             <p class="eyebrow">Invoice</p>
-            <h1 th:text="'Invoice No. ' + ${workSite.invoiceNumber}">Invoice</h1>
+            <h1 th:text="${workSite.invoiceNumber == null} ? 'Draft Invoice' : 'Invoice No. ' + ${workSite.invoiceNumber}">Invoice</h1>
         </div>
     </div>
     <nav class="top-nav" aria-label="Primary">
@@ -33,12 +33,20 @@
 
 <main class="page invoice-page">
     <div th:if="${message}" class="alert alert-success invoice-screen-nav" th:text="${message}"></div>
+    <div th:if="${error}" class="alert alert-error invoice-screen-nav" th:text="${error}"></div>
+    <div th:if="${workSite.invoiceNumber == null}" class="alert alert-error invoice-screen-nav">
+        Invoice number is required before downloading this invoice.
+    </div>
 
     <section class="invoice-tools invoice-screen-nav">
         <form th:action="@{/customers/{contractorId}/work-sites/{workSiteId}/invoice(contractorId=${workSite.contractor.id},workSiteId=${workSite.id})}"
               method="post"
               class="form-panel">
             <div class="form-grid">
+                <label>
+                    Invoice Number
+                    <input type="number" name="invoiceNumber" min="1" step="1" th:value="${workSite.invoiceNumber}" required>
+                </label>
                 <label>
                     Invoice Date
                     <input type="date" name="invoiceDate" th:value="${workSite.invoiceDate}" required>
@@ -67,8 +75,9 @@
                 <button type="submit" class="primary-button">+ Add Particular</button>
                 <a th:href="@{/customers/{contractorId}/work-sites/{workSiteId}/invoice/pdf(contractorId=${workSite.contractor.id},workSiteId=${workSite.id})}"
                    class="icon-button download-icon-button"
+                   th:classappend="${workSite.invoiceNumber == null} ? ' disabled-link' : ''"
                    aria-label="Download invoice PDF"
-                   title="Download invoice PDF">
+                   th:title="${workSite.invoiceNumber == null} ? 'Save an invoice number first' : 'Download invoice PDF'">
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M12 3v12"></path>
                         <path d="M7 10l5 5 5-5"></path>
@@ -86,7 +95,7 @@
         <p class="invoice-subtitle">Residential and Commercial Cleaning Services</p>
 
         <div class="invoice-meta">
-            <strong th:text="'Invoice No.' + ${workSite.invoiceNumber}">Invoice No.1</strong>
+            <strong th:text="${workSite.invoiceNumber == null} ? 'Invoice No. required' : 'Invoice No.' + ${workSite.invoiceNumber}">Invoice No.1</strong>
             <strong th:text="'Date: ' + ${#temporals.format(workSite.invoiceDate, 'MMMM d, yyyy')}">Date</strong>
         </div>
 
@@ -118,8 +127,6 @@
                     <div class="invoice-particulars-stack">
                         <div class="invoice-main-particular">
                             <span th:text="${workSite.serviceTypeDisplayName}">Service</span>
-                            <br>
-                            <span th:text="'Job Site: ' + ${workSite.location}">Job Site</span>
                         </div>
                         <div th:each="item : ${workSite.invoiceItems}" class="invoice-extra-item">
                             <span th:text="${item.description}">Particular</span>
@@ -138,6 +145,9 @@
                                     </svg>
                                 </button>
                             </form>
+                        </div>
+                        <div class="invoice-job-site-line">
+                            <span th:text="'Job Site: ' + ${workSite.location}">Job Site</span>
                         </div>
                     </div>
                 </td>

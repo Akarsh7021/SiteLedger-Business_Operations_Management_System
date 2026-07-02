@@ -215,6 +215,15 @@ public class ContractorController {
     @GetMapping("/{contractorId}/work-sites/{workSiteId}/invoice/download")
     public String downloadInvoice(@PathVariable Long contractorId, @PathVariable Long workSiteId, Model model) {
         WorkSite workSite = contractorService.prepareInvoice(workSiteId);
+        if (workSite.getInvoiceNumber() == null) {
+            model.addAttribute("error", "Add and save an invoice number before downloading.");
+            model.addAttribute("workSite", workSite);
+            model.addAttribute("invoiceSubtotal", contractorService.invoiceSubtotal(workSite));
+            model.addAttribute("invoiceGst", contractorService.invoiceGst(workSite));
+            model.addAttribute("invoiceTotal", contractorService.invoiceTotal(workSite));
+            model.addAttribute("printMode", false);
+            return "contractors/invoice";
+        }
         model.addAttribute("workSite", workSite);
         model.addAttribute("invoiceSubtotal", contractorService.invoiceSubtotal(workSite));
         model.addAttribute("invoiceGst", contractorService.invoiceGst(workSite));
@@ -226,6 +235,11 @@ public class ContractorController {
     @GetMapping("/{contractorId}/work-sites/{workSiteId}/invoice/pdf")
     public ResponseEntity<byte[]> downloadInvoicePdf(@PathVariable Long contractorId, @PathVariable Long workSiteId) {
         WorkSite workSite = contractorService.prepareInvoice(workSiteId);
+        if (workSite.getInvoiceNumber() == null) {
+            return ResponseEntity.badRequest()
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body("Add and save an invoice number before downloading.".getBytes());
+        }
         byte[] pdf = new InvoicePdfRenderer().render(
                 workSite,
                 contractorService.invoiceSubtotal(workSite),
@@ -243,11 +257,17 @@ public class ContractorController {
     public String updateInvoice(
             @PathVariable Long contractorId,
             @PathVariable Long workSiteId,
+            @RequestParam(required = false) Integer invoiceNumber,
             @RequestParam LocalDate invoiceDate,
             @RequestParam String invoiceBillingAddress,
             RedirectAttributes redirectAttributes
     ) {
-        contractorService.updateInvoice(workSiteId, invoiceDate, invoiceBillingAddress);
+        try {
+            contractorService.updateInvoice(workSiteId, invoiceNumber, invoiceDate, invoiceBillingAddress);
+        } catch (IllegalArgumentException exception) {
+            redirectAttributes.addFlashAttribute("error", exception.getMessage());
+            return "redirect:/customers/" + contractorId + "/work-sites/" + workSiteId + "/invoice";
+        }
         redirectAttributes.addFlashAttribute("message", "Invoice updated.");
         return "redirect:/customers/" + contractorId + "/work-sites/" + workSiteId + "/invoice";
     }

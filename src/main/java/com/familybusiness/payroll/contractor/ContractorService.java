@@ -171,9 +171,6 @@ public class ContractorService {
 
     public WorkSite prepareInvoice(Long workSiteId) {
         WorkSite workSite = getWorkSite(workSiteId);
-        if (workSite.getInvoiceNumber() == null) {
-            workSite.setInvoiceNumber(nextInvoiceNumber());
-        }
         if (workSite.getStatus() == WorkSiteStatus.COMPLETE) {
             if (workSite.getInvoiceDate() == null) {
                 workSite.setInvoiceDate(LocalDate.now());
@@ -187,8 +184,26 @@ public class ContractorService {
         return workSiteRepository.save(workSite);
     }
 
-    public WorkSite updateInvoice(Long workSiteId, LocalDate invoiceDate, String invoiceBillingAddress) {
+    @Transactional(readOnly = true)
+    public boolean invoiceNumberIsUsedByAnotherSite(Long workSiteId, Integer invoiceNumber) {
+        if (invoiceNumber == null) {
+            return false;
+        }
+        return workSiteRepository.existsByInvoiceNumberAndIdNot(invoiceNumber, workSiteId);
+    }
+
+    public WorkSite updateInvoice(Long workSiteId, Integer invoiceNumber, LocalDate invoiceDate, String invoiceBillingAddress) {
         WorkSite workSite = prepareInvoice(workSiteId);
+        if (invoiceNumber == null) {
+            throw new IllegalArgumentException("Invoice number is required.");
+        }
+        if (invoiceNumber < 1) {
+            throw new IllegalArgumentException("Invoice number must be 1 or higher.");
+        }
+        if (invoiceNumberIsUsedByAnotherSite(workSiteId, invoiceNumber)) {
+            throw new IllegalArgumentException("Invoice number " + invoiceNumber + " is already used.");
+        }
+        workSite.setInvoiceNumber(invoiceNumber);
         workSite.setInvoiceDate(invoiceDate);
         workSite.setInvoiceBillingAddress(cleanOptionalText(invoiceBillingAddress));
         return workSiteRepository.save(workSite);
@@ -257,14 +272,6 @@ public class ContractorService {
         }
         BigDecimal quotedAmount = form.getQuotedAmount() == null ? BigDecimal.ZERO : form.getQuotedAmount();
         return quotedAmount.setScale(2, RoundingMode.HALF_UP);
-    }
-
-    private Integer nextInvoiceNumber() {
-        Integer maxInvoiceNumber = workSiteRepository.findMaxInvoiceNumber();
-        if (maxInvoiceNumber == null) {
-            return 1;
-        }
-        return maxInvoiceNumber + 1;
     }
 
     private String defaultBillingAddress(WorkSite workSite) {

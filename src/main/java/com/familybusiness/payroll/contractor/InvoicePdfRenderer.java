@@ -59,7 +59,7 @@ public class InvoicePdfRenderer {
         text(content, "Price", tableLeft + srWidth + particularsWidth + 15, tableTop - 25, 10, true);
 
         List<String> particulars = new ArrayList<>();
-        particulars.add(workSite.getServiceTypeDisplayName() + "\nJob Site: " + workSite.getLocation());
+        particulars.add(workSite.getServiceTypeDisplayName());
         for (InvoiceItem item : workSite.getInvoiceItems()) {
             particulars.add(item.getDescription());
         }
@@ -75,8 +75,13 @@ public class InvoicePdfRenderer {
             }
             detailY -= 4;
         }
+        detailY -= 4;
+        for (String line : splitLines("Job Site: " + workSite.getLocation(), 56)) {
+            text(content, line, tableLeft + srWidth + 8, detailY, 10, false);
+            detailY -= 12;
+        }
 
-        int priceY = tableTop - rowHeight - 92;
+        int priceY = tableTop - rowHeight - 70;
         text(content, money(workSite.getQuotedAmount()), tableLeft + srWidth + particularsWidth + 7, priceY, 10, false);
         priceY -= 17;
         for (InvoiceItem item : workSite.getInvoiceItems()) {

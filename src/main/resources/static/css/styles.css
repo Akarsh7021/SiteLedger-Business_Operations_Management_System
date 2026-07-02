@@ -334,6 +334,11 @@ button,
     border-color: var(--accent);
 }
 
+.disabled-link {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
 .table-panel,
 .form-panel,
 .auth-panel {
@@ -903,7 +908,8 @@ tr:last-child td {
 
 .invoice-table .invoice-particular-row td {
     height: 215px;
-    vertical-align: middle;
+    padding-top: 18px;
+    vertical-align: top;
 }
 
 .invoice-sr-stack,
@@ -913,7 +919,7 @@ tr:last-child td {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    justify-content: center;
+    justify-content: flex-start;
     max-height: 176px;
     overflow: hidden;
     text-align: left;
@@ -934,6 +940,13 @@ tr:last-child td {
     align-items: center;
     display: flex;
     gap: 8px;
+}
+
+.invoice-job-site-line {
+    color: #111;
+    font-size: 14px;
+    line-height: 1.35;
+    margin-top: 4px;
 }
 
 .invoice-price-stack {

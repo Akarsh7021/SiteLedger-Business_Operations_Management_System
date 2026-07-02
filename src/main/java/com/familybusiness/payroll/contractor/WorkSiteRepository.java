@@ -18,6 +18,8 @@ public interface WorkSiteRepository extends JpaRepository<WorkSite, Long> {
     @Query("select max(ws.invoiceNumber) from WorkSite ws")
     Integer findMaxInvoiceNumber();
 
+    boolean existsByInvoiceNumberAndIdNot(Integer invoiceNumber, Long id);
+
     @Query("select distinct ws.serviceType from WorkSite ws where ws.serviceType is not null and ws.serviceType <> '' order by ws.serviceType")
     List<String> findDistinctServiceTypes();
 }

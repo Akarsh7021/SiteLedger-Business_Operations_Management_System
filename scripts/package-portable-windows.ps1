@@ -38,8 +38,9 @@ if ($null -eq $jar) {
 New-Item -ItemType Directory -Force -Path $appDir | Out-Null
 Copy-Item -Force -LiteralPath $jar.FullName -Destination (Join-Path $appDir $jarName)
 
-if (Test-Path (Join-Path $root "employee-payroll.db")) {
-    Copy-Item -Force -LiteralPath (Join-Path $root "employee-payroll.db") -Destination (Join-Path $appDir "employee-payroll.db")
+$portableDatabase = Join-Path $appDir "employee-payroll.db"
+if (Test-Path $portableDatabase) {
+    Remove-Item -Force -LiteralPath $portableDatabase
 }
 
 @'
@@ -69,6 +70,32 @@ pause
 '@ | Set-Content -Encoding ASCII -Path (Join-Path $appDir "Start SiteLedger.bat")
 
 @'
+@echo off
+cd /d "%~dp0"
+
+echo This will delete the local SiteLedger database in this folder.
+echo Use this only before first setup, or when you want to remove all local data and create a new account.
+echo.
+set /p CONFIRM=Type DELETE and press Enter to continue: 
+if /I not "%CONFIRM%"=="DELETE" (
+  echo Cancelled.
+  pause
+  exit /b 0
+)
+
+if exist "employee-payroll.db" (
+  del /f /q "employee-payroll.db"
+  echo Database removed.
+) else (
+  echo No database file was found.
+)
+
+echo.
+echo Now run "Start SiteLedger.bat" and create the account.
+pause
+'@ | Set-Content -Encoding ASCII -Path (Join-Path $appDir "Reset SiteLedger - Delete Local Data.bat")
+
+@'
 SiteLedger - Local App Package
 
 How to run:
@@ -77,7 +104,7 @@ How to run:
 
 Requirements:
 - Java 17 or newer must be installed.
-- Data is stored locally in employee-payroll.db in this same folder.
+- Data is stored locally in employee-payroll.db in this same folder after first launch.
 
 First launch:
 - Create the username and password on the setup page.
@@ -85,6 +112,7 @@ First launch:
 
 Important:
 - Keep this whole folder together. Do not delete employee-payroll.db unless you want to remove the local data.
+- If this folder was copied over an older SiteLedger folder, run "Reset SiteLedger - Delete Local Data.bat" once before first setup.
 '@ | Set-Content -Encoding ASCII -Path (Join-Path $appDir "README-FIRST.txt")
 
 Write-Host ""
